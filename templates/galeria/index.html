@@ -10,19 +10,22 @@
                     <div class="cards">
                         <h2 class="cards__titulo">Navegue pelo site</h2>
                         <ul class="cards__lista">
-                            {% for foto_id, info in cards.items %}
-                                <li class="card">
-                                    <a href="{% url 'imagem' %}">
-                                        <img class="card__imagem" src="{% static '/assets/imagens/galeria/regras.png' %}" alt="foto">
-                                    </a>
-                                    <div class="card__info">
-                                        <p class="card__titulo">{{ info.nome }}</p>
-                                        <div class="card__texto">
-                                            <p class="card__descricao">{{ info.legenda }}</p>
+                            {% if cards %}
+                                {% for fotografia in cards %}
+                                    <li class="card">
+                                        <a href="{% url 'imagem' fotografia.id %}">
+                                            <img class="card__imagem" src="{% static '/assets/imagens/galeria/' %}{{ fotografia.foto }}" alt="foto">
+                                        </a>
+                                        <div class="card__info">
+                                            <p class="card__titulo">{{ fotografia.nome }}</p>
+                                            <div class="card__texto">
+                                                <p class="card__descricao">{{ fotografia.legenda }}</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                </li>
-                            {% endfor %}
+                                    </li>
+                                {% endfor %}
+                            {% else %}
+                            {% endif %}
                         </ul>
                     </div>
                 </section>

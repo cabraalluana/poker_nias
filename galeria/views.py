@@ -1,14 +1,12 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
+from galeria.models import Fotografia
 
 def index(request):
-    dados = {
-        1:{"nome": "Regras", "legenda": "Aprenda as regras do Poker."},
-        2:{"nome": "Como jogar?", "legenda": "Aprenda a submeter seu código."},
-        3:{"nome": "Jogar", "legenda": "Acesse sua conta ou faça um cadastro."},
-        4:{"nome": "Ranking", "legenda": "Ranking de Poker - Ganhos e Perdas."}
-    }
+    fotografias = Fotografia.objects.all()
 
-    return render(request, 'galeria/index.html', {"cards": dados})
+    return render(request, 'galeria/index.html', {"cards": fotografias})
 
-def imagem(request):
-    return render(request, 'galeria/imagem.html')
+def imagem(request, foto_id):
+    fotografia = get_object_or_404(Fotografia, pk=foto_id)
+
+    return render(request, 'galeria/imagem.html', {"fotografia": fotografia})
