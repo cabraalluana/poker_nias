@@ -10,38 +10,19 @@
                     <div class="cards">
                         <h2 class="cards__titulo">Navegue pelo site</h2>
                         <ul class="cards__lista">
-                            <li class="card">
-                                <a href="{% url 'imagem' %}">
-                                    <img class="card__imagem" src="{% static '/assets/imagens/galeria/ranking (1).png' %}" alt="foto">
-                                </a>
-                                <div class="card__info">
-                                    <p class="card__titulo">Ranking</p>
-                                </div>
-                            </li>
-                            <li class="card">
-                                <a href="{% url 'imagem' %}">
-                                    <img class="card__imagem" src="{% static '/assets/imagens/galeria/regras.png' %}" alt="foto">
-                                </a>
-                                <div class="card__info">
-                                    <p class="card__titulo">Regras</p>
-                                </div>
-                            </li>
-                            <li class="card">
-                                <a href="{% url 'imagem' %}">
-                                    <img class="card__imagem" src="{% static '/assets/imagens/galeria/comoJogar1.png' %}" alt="foto">
-                                </a>
-                                <div class="card__info">
-                                    <p class="card__titulo">Como jogar?</p>
-                                </div>
-                            </li>
-                            <li class="card">
-                                <a href="{% url 'imagem' %}">
-                                    <img class="card__imagem" src="{% static '/assets/imagens/galeria/jogar.png' %}" alt="foto">
-                                </a>
-                                <div class="card__info">
-                                    <p class="card__titulo">Jogar</p>
-                                </div>
-                            </li>
+                            {% for foto_id, info in cards.items %}
+                                <li class="card">
+                                    <a href="{% url 'imagem' %}">
+                                        <img class="card__imagem" src="{% static '/assets/imagens/galeria/regras.png' %}" alt="foto">
+                                    </a>
+                                    <div class="card__info">
+                                        <p class="card__titulo">{{ info.nome }}</p>
+                                        <div class="card__texto">
+                                            <p class="card__descricao">{{ info.legenda }}</p>
+                                        </div>
+                                    </div>
+                                </li>
+                            {% endfor %}
                         </ul>
                     </div>
                 </section>
