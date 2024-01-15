@@ -20,13 +20,7 @@
     <div class="pagina-inicial">
         <header class="cabecalho">
             <img src="{% static '/assets/logo/logo1.png' %}" alt="Logo do NIAS-IA" />
-
-            {% for message in messages %}
-                <div class="alert alert-primary">
-                    <p id="messages">{{ message }}</p>
-                </div>
-            {% endfor %}
-
+            {% include 'partials/_alertas.html' %}
             <div class="cabecalho__busca">
                 <div class="busca__fundo">
                     <form action="{% url 'buscar' %}">
@@ -67,4 +61,4 @@
     </div>
 </body>
 
-{% include 'galeria/partials/_footer.html' %}
+{% include 'partials/_footer.html' %}
