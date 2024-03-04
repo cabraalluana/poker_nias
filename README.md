@@ -85,6 +85,6 @@ python3 manage.py runserver
 ```
 
 Agora o projeto estará rodando no localhost. Para acessá-lo, clique no link gerado (em vermelho) ou digite-o em seu navegador.
-![Exemplo](imagens/exemplo.png)
+![Exemplo](imagens/exemplo.jpeg)
 
 Se precisar de mais alguma ajuda ou encontrar problemas durante a configuração, não hesite em entrar em contato. Espero que o projeto seja útil para você!
