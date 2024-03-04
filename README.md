@@ -84,6 +84,6 @@ Para executar o projeto localmente, utilize o comando:
 python3 manage.py runserver
 ```
 
-Agora o projeto estará rodando no localhost. Para acessá-lo, clique no link gerado (em vermelho) ou digite-o em seu navegador.
+Agora o projeto estará rodando no localhost. Para acessá-lo, clique no link gerado (circulado em vermelho) ou digite-o em seu navegador.
 
 ![Exemplo](imagens/exemplo.jpeg)
