@@ -28,6 +28,10 @@ Este é um guia para configurar e executar o projeto em sua máquina local. Cert
      ```bash
      python -m virtualenv .venv
      ```
+   ou
+     ```bash
+     python -m venv .venv
+     ```
    - **Linux/macOS**:
      ```bash
      python3 -m venv .venv
@@ -59,30 +63,50 @@ pip install -r requirements.txt
 ## Configuração do Banco de Dados
 
 1. Execute o seguinte comando para criar migrações:
-   ```bash
-   python3 manage.py makemigrations
-   ```
+   - **Windows**:
+     ```bash
+     python manage.py makemigrations
+     ```
+   - **Linux/macOS**:
+     ```bash
+     python3 manage.py makemigrations
+     ```
 
 2. Execute o seguinte comando para aplicar as migrações e configurar o banco de dados:
-   ```bash
-   python3 manage.py migrate
-   ```
+   - **Windows**:
+     ```bash
+     python manage.py migrate
+     ```
+   - **Linux/macOS**:
+     ```bash
+     python3 manage.py migrate
+     ```
 
 ## Criação de Superusuário
 
 Como o projeto foi clonado, não há dados de usuário disponíveis. Você precisará criar um novo superusuário para acessar o sistema. No terminal do VS Code, digite:
-```bash
-python3 manage.py createsuperuser
-```
+   - **Windows**:
+     ```bash
+     python manage.py createsuperuser
+     ```
+   - **Linux/macOS**:
+     ```bash
+     python3 manage.py createsuperuser
+     ```
 
 Siga as instruções para configurar o nome de usuário, email e senha do superusuário.
 
 ## Execução do Servidor
 
 Para executar o projeto localmente, utilize o comando:
-```bash
-python3 manage.py runserver
-```
+   - **Windows**:
+     ```bash
+     python manage.py runserver
+     ```
+   - **Linux/macOS**:
+     ```bash
+     python3 manage.py runserver
+     ```
 
 Agora o projeto estará rodando no localhost. Para acessá-lo, clique no link gerado (circulado em vermelho) ou digite-o em seu navegador.
 
