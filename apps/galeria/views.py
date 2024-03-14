@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from apps.galeria.models import Fotografia
 from django.contrib import messages
+from apps.galeria.forms import FotografiaForms
 
 def index(request):
     if not request.user.is_authenticated:
@@ -16,16 +17,23 @@ def imagem(request, foto_id):
 
     return render(request, 'galeria/imagem.html', {"fotografia": fotografia})
 
-def buscar(request):
+def nova_imagem(request):
     if not request.user.is_authenticated:
         messages.error(request, 'Usuário não logado.')
         return redirect('login')
     
-    fotografias = Fotografia.objects.filter(publicada=True)
+    form = FotografiaForms
+    
+    if request.method == 'POST':
+        form = FotografiaForms(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Nova Fotografia cadastrada!')
+    
+    return render (request, 'galeria/nova_imagem.html', {'form': form})
 
-    if "buscar" in request.GET:
-        nome_a_buscar = request.GET['buscar']
-        if nome_a_buscar:
-            fotografias = fotografias.filter(nome__icontains=nome_a_buscar)
+def editar_imagem(request):
+    pass
 
-    return render(request, "galeria/buscar.html", {"cards": fotografias})
+def deletar_imagem(request):
+    pass

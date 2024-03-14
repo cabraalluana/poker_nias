@@ -7,7 +7,7 @@ class Fotografia(models.Model):
     legenda = models.CharField(max_length=150, null=False, blank=False)
     descricao = models.TextField(null=False, blank=False)
     foto = models.ImageField(upload_to="foto/%Y/%m/%d/", blank=True)
-    publicada = models.BooleanField(default=False)
+    publicada = models.BooleanField(default=True)
     data_fotografia = models.DateTimeField(default=datetime.now, blank=False)
 
 def __str__(self):
