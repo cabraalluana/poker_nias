@@ -1,7 +1,7 @@
 {% load static %}
 <div class="pagina-inicial">
     <header class="cabecalho">
-        <img src="{% static '/assets/logo/logo1.png' %}" alt="Logo do NIAS-IA" />
+        <img src="{% static 'assets/logo/logo1.png' %}" alt="Logo do NIAS-IA" />
 
         {% for message in messages %}
             <div class="alert alert-primary">
@@ -12,10 +12,10 @@
     <main class="principal">
         <section class="menu-lateral">
             <nav class="menu-lateral__navegacao">
-                <a class="pagina__ativa" href="{% url 'index' %}"><img src="{% static '/assets/ícones/1x/Home - ativo.png' %}"> Home</a>
-                <a href="{% url 'login' %}"><img src="{% static '/assets/ícones/1x/Mais vistas - inativo.png' %}"> Login</a>
-                <a href="{% url 'cadastro' %}"><img src="{% static '/assets/ícones/1x/Novas - inativo.png' %}"> Cadastrar</a>
-                <a href="{% url 'logout' %}"><img src="{% static '/assets/ícones/1x/Surpreenda-me - inativo.png' %}"> Logout</a>
-                <a href="{% url 'nova_imagem' %}"><img src="{% static '/assets/ícones/1x/Surpreenda-me - inativo.png' %}"> Nova imagem</a>
+                <a class="pagina__ativa" href="{% url 'index' %}"><img src="{% static 'assets/ícones/1x/Home - ativo.png' %}"> Home</a>
+                <a href="{% url 'login' %}"><img src="{% static 'assets/ícones/1x/Mais vistas - inativo.png' %}"> Login</a>
+                <a href="{% url 'cadastro' %}"><img src="{% static 'assets/ícones/1x/Novas - inativo.png' %}"> Cadastrar</a>
+                <a href="{% url 'logout' %}"><img src="{% static 'assets/ícones/1x/Surpreenda-me - inativo.png' %}"> Logout</a>
+                <a href="{% url 'nova_imagem' %}"><img src="{% static 'assets/ícones/1x/Surpreenda-me - inativo.png' %}"> Nova imagem</a>
             </nav>
         </section>
