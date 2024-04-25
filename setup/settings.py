@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'apps.galeria.apps.GaleriaConfig',
     'apps.usuarios.apps.UsuariosConfig',
     'apps.codigos.apps.CodigosConfig',
+    'apps.mesas.apps.MesasConfig',
     
     'storages',
 ]
