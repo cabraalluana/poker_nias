@@ -3,6 +3,8 @@ from django.apps import apps
 from apps.codigos.models import Codigo
 from django.db import transaction
 from apps.mesas.models import Mesa, Codigo_Mesa
+from django.contrib.auth.models import User
+from django.db.models import F
 
 for model in apps.get_models():
     total_registros = model.objects.count()
@@ -57,3 +59,35 @@ def criar_mesa_e_vincular_codigos(listas_de_codigos):
     except Exception as e:
         # Em caso de erro, desfaz as alterações
         print(f"Erro ao criar mesas e vincular códigos: {e}")
+
+def obter_id_mesas(status):
+    # Consulta as mesas com o status fornecido usando o ORM do Django
+    mesas = Mesa.objects.filter(status=status)
+
+    # Obtém os IDs das mesas
+    id_mesas = [mesa.id for mesa in mesas]
+
+    return id_mesas
+
+def consultar_mesas_e_codigos(id_mesas):
+    resultado = []
+    
+    try:
+        for id_mesa in id_mesas:
+            # Consultar os dados desejados usando o ORM do Django
+            dados_mesa = (
+                Mesa.objects
+                .filter(id=id_mesa)
+                .values(
+                    idMesa=F('id'),  # renomeia o campo para idMesa
+                    idCodigo=F('codigo_mesa__codigo__id'),  # id do código
+                    user=F('codigo_mesa__codigo__usuario__username')  # nome do usuário
+                )
+            )
+            
+            resultado.append(list(dados_mesa))
+
+        return resultado
+
+    except Exception as e:
+        return [f"Erro ao consultar mesa {id_mesa}: {e}"]

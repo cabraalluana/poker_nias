@@ -2,6 +2,7 @@ import math
 import random
 
 from apps.mesas import views
+from prettytable import PrettyTable
 
 def numeroJogadores():
     """
@@ -111,3 +112,31 @@ def criar_mesa_e_vincular_codigos(listas_de_codigos):
     """
     
     views.criar_mesa_e_vincular_codigos(listas_de_codigos)
+    
+def obter_id_mesas(status):
+    return views.obter_id_mesas(status)
+
+def consultar_mesas_e_codigos(id_mesas, status):
+     # Verificar se id_mesas não é uma lista vazia
+    if not id_mesas:
+        if status:
+            print("Não existe nenhuma mesa ativa no momento")
+        else:
+            print("Não existe nenhuma mesa inativa no momento")
+        return
+
+    # Criar uma tabela
+    tabela = PrettyTable()
+
+    # Definir os nomes das colunas da tabela
+    tabela.field_names = ["idMesa", "idCodigo", "user"]
+
+    # Obter os dados do banco de dados usando a função bdMesas.consultar_mesas_e_codigos
+    for tupla in views.consultar_mesas_e_codigos(id_mesas):
+        # Iterar sobre os resultados da consulta
+        for resultado in tupla:
+            # Adicionar uma linha à tabela para cada resultado
+            tabela.add_row([resultado['idMesa'], resultado['idCodigo'], resultado['user']])
+
+    # Imprimir a tabela formatada
+    print(tabela)

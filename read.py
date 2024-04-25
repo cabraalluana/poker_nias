@@ -27,8 +27,18 @@ def main():
                 print("=====================================================================")
                 print("Todos os jogadores estão em uma partida ou não há jogadores o suficiente para uma nova mesa. (Mínimo 3)")
             else:
-                res = analise.sortear_mesas(analise.numeroJogadores(), analise.get_codigo_ids())
-                analise.criar_mesa_e_vincular_codigos(res)
+                analise.criar_mesa_e_vincular_codigos(
+                    analise.sortear_mesas(
+                        analise.numeroJogadores(),
+                        analise.get_codigo_ids()
+                    )
+                )
+        elif escolha == 2:
+            print("=====================================================================")
+            analise.consultar_mesas_e_codigos(analise.obter_id_mesas(True), True)
+        elif escolha == 3:
+            print("=====================================================================")
+            analise.consultar_mesas_e_codigos(analise.obter_id_mesas(False), False)
         elif escolha == 0:
             break
         else:
