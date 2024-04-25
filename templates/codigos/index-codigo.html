@@ -1,0 +1,38 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+{% block content %}
+            <section class="conteudo">
+                <section class="galeria">
+                    <div class="cards">
+                        <h2 class="cards__titulo">Informações do código ativo</h2>
+                        <ul class="cards__lista">
+                            {% if cards %}
+                                {% for codigo in cards %}
+                                    <li class="card">
+                                        <a href="{% url 'lista_codigos' codigo.id %}">
+                                            {% if codigo.arquivo == '' or codigo.arquivo == null %}
+                                                <img class="card__imagem" src="{% static 'assets/imagens/galeria/not-found.png' %}" alt="foto">
+                                            {% else %}
+                                                <img class="card__imagem" src="{{ codigo.arquivo.url }}" alt="foto">
+                                            {% endif %}
+                                        </a>
+                                        <div class="card__info">
+                                            <p class="card__titulo">{{ codigo.arquivo }}</p>
+                                            <div class="card__texto">
+                                                <p class="card__descricao">{{ codigo.data_codigo }}</p>
+                                            </div>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            {% else %}
+                                <div class="imagem__texto">
+                                    <p>Pesquisa não retornou nenhum resultado</p>
+                                </div>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </section>
+            </section>
+        </main>
+    </div>
+{% endblock %}

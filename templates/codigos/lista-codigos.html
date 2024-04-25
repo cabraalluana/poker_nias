@@ -1,0 +1,25 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+{% block content %}
+            <section class="conteudo">
+                <section class="imagem">
+                    <div class="imagem__conteudo">
+                        {% if codigo.arquivo == '' or codigo.arquivo == null %}
+                            <img class="card__imagem" src="{% static '/assets/imagens/galeria/not-found.png' %}" alt="foto">
+                        {% else %}
+                            <img class="card__imagem" src="{{ codigo.arquivo.url }}" alt="foto">
+                        {% endif %}
+                        <div class="imagem__info">
+                            <div class="imagem__texto">
+                                <p class="imagem__titulo">{{ codigo.arquivo }}</p>
+                            </div>
+                            <div>
+                                <a href="{% url 'download_codigo' codigo.id %}"><button class="btn btn-success col-12" style="padding: top 5px;">Baixar arquivo</button></a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </section>
+        </main>
+    </div>
+{% endblock %}

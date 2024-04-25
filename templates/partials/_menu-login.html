@@ -1,0 +1,19 @@
+{% load static %}
+<div class="pagina-inicial">
+    <header class="cabecalho">
+        <img src="{% static 'assets/logo/logo1.png' %}" alt="Logo do NIAS-IA" />
+
+        {% for message in messages %}
+            <div class="alert alert-primary">
+                <p id="messages">{{ message }}</p>
+            </div>
+        {% endfor %}
+    </header>
+    <main class="principal">
+        <section class="menu-lateral">
+            <nav class="menu-lateral__navegacao">
+                <a href="{% url 'index' %}"><img src="{% static 'assets/ícones/1x/Home - inativo.png' %}"> Home</a>
+                <a class="pagina__ativa" href="{% url 'login' %}"><img src="{% static 'assets/ícones/1x/Mais vistas - ativo.png' %}"> Login</a>
+                <a href="{% url 'cadastro' %}"><img src="{% static 'assets/ícones/1x/Novas - inativo.png' %}"> Cadastrar</a>
+            </nav>
+        </section>
