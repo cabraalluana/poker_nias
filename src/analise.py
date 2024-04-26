@@ -1,5 +1,7 @@
 import math
 import random
+import os
+import shutil
 
 from apps.mesas import views
 from prettytable import PrettyTable
@@ -57,7 +59,7 @@ def numeroJogadoresMesa(numero_jogadores):
         qtdJogadoresMesas[i] = qtdJogadoresMesas[i] + 1
         jogadoresRestantes = jogadoresRestantes - 1
 
-    print("=====================================================================")
+    print("="*100)
     print("mesa\tQuantidade de jogadores")
     for i in range(len(qtdJogadoresMesas)):
         print(f"{i + 1}\t{qtdJogadoresMesas[i]}")
@@ -91,7 +93,7 @@ def sortear_mesas(num_jogadores, listaIDs):
 
         tabela[mesa] = jogadores_na_mesa
 
-    print("=====================================================================")
+    print("="*100)
     print("mesa\tjogadores")
     for mesa, jogadores_na_mesa in tabela.items():
         print(f"{mesa}\t{jogadores_na_mesa}")
@@ -140,3 +142,63 @@ def consultar_mesas_e_codigos(id_mesas, status):
 
     # Imprimir a tabela formatada
     print(tabela)
+    
+def criar_pastas_mesas_ativas():
+    caminho_pasta = 'mesas_ativas'
+    if not os.path.exists(caminho_pasta):
+        os.makedirs(caminho_pasta)
+    else:
+        # Itera sobre todos os arquivos na pasta
+        for arquivo in os.listdir(caminho_pasta):
+            try:
+                # Monta o caminho completo do arquivo
+                caminho_arquivo = os.path.join(caminho_pasta, arquivo)
+                # Verifica se é um arquivo e não um diretório
+                if os.path.isfile(caminho_arquivo):
+                    # Remove o arquivo
+                    os.unlink(caminho_arquivo)
+                # Se for um diretório, remove recursivamente
+                elif os.path.isdir(caminho_arquivo):
+                    shutil.rmtree(caminho_arquivo)
+            except Exception as e:
+                print(f"Erro ao apagar {caminho_arquivo}: {e}")
+
+    listaIdMesa = views.criar_pastas_mesas_ativas()
+    
+    # Iterar sobre os resultados
+    for idMesa in listaIdMesa:
+        # Criar o nome da pasta
+        nome_pasta = f'mesa_{idMesa}'
+            
+        # Caminho completo da pasta
+        caminho_completo = os.path.join(caminho_pasta, nome_pasta)
+            
+        # Verificar se a pasta não existe antes de criar
+        if not os.path.exists(caminho_completo):
+            os.makedirs(caminho_completo)
+            
+    return listaIdMesa
+
+def consultar_arquivo_e_id_mesas():
+    return views.consultar_arquivo_e_id_mesas()
+
+def download_from_s3(file_list):
+    views.download_from_s3(file_list)
+    
+def dividir_codigo_mesas(lista_arquivos):
+    # Percorre a lista de arquivos
+    for nome_arquivo, id_mesa in lista_arquivos:
+        # Diretório de origem do arquivo
+        origem = f"{nome_arquivo}"
+        # Diretório de destino da mesa
+        destino = f"mesas_ativas/mesa_{id_mesa}"
+        
+        # Verifica se o diretório de destino existe, se não, cria-o
+        if not os.path.exists(destino):
+            os.makedirs(destino)
+        
+        # Move o arquivo para o diretório de destino
+        shutil.move(origem, destino)
+        
+def alterar_status_mesa(id_mesa):
+    views.alterar_status_mesa(id_mesa)

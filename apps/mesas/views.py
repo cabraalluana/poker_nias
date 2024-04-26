@@ -1,10 +1,14 @@
-from django.shortcuts import render
+import subprocess
+
+from django.shortcuts import get_object_or_404
 from django.apps import apps
 from apps.codigos.models import Codigo
 from django.db import transaction
 from apps.mesas.models import Mesa, Codigo_Mesa
 from django.contrib.auth.models import User
 from django.db.models import F
+from django.http import HttpResponse, Http404
+from django.conf import settings
 
 for model in apps.get_models():
     total_registros = model.objects.count()
@@ -91,3 +95,53 @@ def consultar_mesas_e_codigos(id_mesas):
 
     except Exception as e:
         return [f"Erro ao consultar mesa {id_mesa}: {e}"]
+    
+    
+def criar_pastas_mesas_ativas():    
+    try:
+        # Consulta para selecionar idMesa em que status = status fornecido
+        id_mesas = Mesa.objects.filter(status=True).values_list('id', flat=True)
+        
+        return list(id_mesas)
+
+    except Exception as e:
+        print(f"Erro ao obter idMesas com status {True}: {e}")
+        return []
+    
+def consultar_arquivo_e_id_mesas():
+    try:
+        # Consulta usando ORM do Django para obter o nome do arquivo e o id da mesa
+        resultados = (
+            Codigo.objects
+            .filter(codigo_mesa__mesa__status=1)  # Filtra os códigos associados a mesas ativas
+            .values_list('arquivo', 'codigo_mesa__mesa_id')  # Seleciona o nome do arquivo e o id da mesa
+        )
+
+        # Converte o resultado em uma lista de tuplas (idMesa, arquivo)
+        lista_id_arquivo = list(resultados)
+
+        return lista_id_arquivo
+
+    except Exception as e:
+        print(f"Erro ao consultar arquivo e idMesas: {e}")
+        return []
+
+def download_from_s3(file_list):
+    for file_name in file_list:
+        s3_path = f"s3://fotografias-poker/static/{file_name}"
+        subprocess.run(["aws", "s3", "cp", s3_path, "arquivos"])
+        
+def alterar_status_mesa(id_mesa):
+    try:
+        # Buscar a mesa pelo ID
+        mesa = Mesa.objects.get(id=id_mesa)
+        
+        # Atualizar o status da mesa
+        mesa.status = 0
+        mesa.save()
+        
+        return True  # Retorna True se a atualização for bem-sucedida
+    except Mesa.DoesNotExist:
+        return f"Mesa com id {id_mesa} não encontrada"
+    except Exception as e:
+        return f"Erro ao atualizar o status da mesa: {e}"
