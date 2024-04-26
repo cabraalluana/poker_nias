@@ -26,6 +26,14 @@ def delete_files_in_folder(folder_path):
                     print(f"Arquivo '{filename}' excluído com sucesso.")
                 except Exception as e:
                     print(f"Erro ao excluir o arquivo '{filename}': {e}")
+                    
+def criar_pasta_arquivos():
+    pasta_arquivos = "arquivos"
+    if not os.path.exists(pasta_arquivos):
+        os.makedirs(pasta_arquivos)
+        print(f"A pasta '{pasta_arquivos}' foi criada com sucesso.")
+    else:
+        print(f"A pasta '{pasta_arquivos}' já existe.")
 
 def main():
     # Loop da área de mesas
@@ -69,7 +77,7 @@ def main():
                 
                 lista_id_arquivo = analise.consultar_arquivo_e_id_mesas()
                 
-                delete_files_in_folder("arquivos")
+                criar_pasta_arquivos()
                 print("="*100)
                 
                 arquivos = []
@@ -84,13 +92,8 @@ def main():
                 
                 for id_mesa in lista_id_mesa:
                     analise.alterar_status_mesa(id_mesa)
-            """
-                # Chamando a função para modificar o dataframe
-                for id_mesa in ids_mesa:
-                    df_resultados = resultados.resultado_mesa(resultados.ler_csv_para_dataframe(), mesas.mover_arquivos(id_mesa))
-                    mesas.alterar_status_mesa(id_mesa)
-                    resultados.salvar_resultado(df_resultados, id_mesa)
-            """
+            else:
+                print("Não existem mesas ativas no momento.")
         elif escolha == 0:
             break
         else:
