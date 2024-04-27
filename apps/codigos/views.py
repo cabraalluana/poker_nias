@@ -5,22 +5,37 @@ from apps.codigos.models import Codigo
 from django.http import HttpResponse
 import mimetypes
 
-def enviar_codigo(request):
+def enviar_codigo(request, user_id):
     if not request.user.is_authenticated:
         messages.error(request, 'Usuário não logado.')
         return redirect('login')
     
-    form = CodigoForms
+    # Check if a Codigo object exists for the provided user_id
+    codigo_exists = Codigo.objects.filter(usuario_id=user_id).exists()
+
+    if codigo_exists:
+        codigo = Codigo.objects.get(usuario_id=user_id)
+        form = CodigoForms(instance=codigo)
+        
+        if request.method == 'POST':
+            form = CodigoForms(request.POST, request.FILES, instance=codigo)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Novo codigo enviado com sucesso!')
+                return redirect('index')
+    else:
+        form = CodigoForms
     
-    if request.method == 'POST':
-        form = CodigoForms(request.POST, request.FILES)
-        if form.is_valid():
-            instance = form.save(commit=False)
-            instance.usuario = request.user
-            instance.save()
-            messages.success(request, 'Código enviado com sucesso!')
-            return redirect('index')
-    
+        if request.method == 'POST':
+            form = CodigoForms(request.POST, request.FILES)
+            if form.is_valid():
+                deletar_codigo(request, user_id)
+                instance = form.save(commit=False)
+                instance.usuario = request.user
+                instance.save()
+                messages.success(request, 'Código enviado com sucesso!')
+                return redirect('index')
+            
     return render(request, 'codigos/enviar-codigo.html', {'form': form})
 
 def lista_codigos(request, codigo_id):
@@ -45,3 +60,6 @@ def download_codigo(request, codigo_id):
         response = HttpResponse(arquivo.read(), content_type=mimetypes.guess_type(objeto.arquivo.name)[0])
         response['Content-Disposition'] = f'attachment; filename="{objeto.arquivo.name}"'
         return response
+    
+def deletar_codigo(request, user_id):
+    Codigo.objects.filter(usuario_id=user_id).delete()
