@@ -1,10 +1,13 @@
 import os
 import django
+import schedule
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'setup.settings')
 django.setup()
 
 from src import analise
+import time as tm
+from datetime import time, timedelta, datetime
 
 def delete_files_in_folder(folder_path):
     
@@ -36,70 +39,45 @@ def criar_pasta_arquivos():
         print(f"A pasta '{pasta_arquivos}' já existe.")
 
 def main():
-    # Loop da área de mesas
-    while True:
+    # Separar mesas e vincular códigos
+    if analise.numeroJogadores() < 3:
         print("="*100)
-        print("Área das mesas")
-        print("1 - Separar mesas;")
-        print("2 - Listar mesas ativas;")
-        print("3 - Listar mesas inativas;")
-        print("4 - Rodar mesas ativas;")
-        print("0 - Sair da área das mesas.")
+        print("Todos os jogadores estão em uma partida ou não há jogadores o suficiente para uma nova mesa. (Mínimo 3)")
+    else:
+        analise.criar_mesa_e_vincular_codigos(
+            analise.sortear_mesas(
+                analise.numeroJogadores(),
+                analise.get_codigo_ids()
+            )
+        )
+    print("="*100)
+    lista_id_mesa = analise.criar_pastas_mesas_ativas()
+    if lista_id_mesa:
+        print("Pastas das mesas ativas criadas com sucesso!")
+        print("="*100)
         
-        # Solicitar a escolha da área de mesas
-        escolha = int(input("Escolha uma opção: "))
-
-        # Realizar ações com base na escolha
-        if escolha == 1:
-            # Separar mesas e vincular códigos
-            if analise.numeroJogadores() < 3:
-                print("="*100)
-                print("Todos os jogadores estão em uma partida ou não há jogadores o suficiente para uma nova mesa. (Mínimo 3)")
-            else:
-                analise.criar_mesa_e_vincular_codigos(
-                    analise.sortear_mesas(
-                        analise.numeroJogadores(),
-                        analise.get_codigo_ids()
-                    )
-                )
-        elif escolha == 2:
-            print("="*100)
-            analise.consultar_mesas_e_codigos(analise.obter_id_mesas(True), True)
-        elif escolha == 3:
-            print("="*100)
-            analise.consultar_mesas_e_codigos(analise.obter_id_mesas(False), False)
-        elif escolha == 4:
-            print("="*100)
-            lista_id_mesa = analise.criar_pastas_mesas_ativas()
-            if lista_id_mesa:
-                print("Pastas das mesas ativas criadas com sucesso!")
-                print("="*100)
-                
-                lista_id_arquivo = analise.consultar_arquivo_e_id_mesas()
-                
-                criar_pasta_arquivos()
-                print("="*100)
-                
-                arquivos = []
-                for lista in lista_id_arquivo:
-                    arquivos.append(lista[0])
-                    
-                analise.download_from_s3(arquivos)
-                
-                analise.dividir_codigo_mesas(lista_id_arquivo)
-                print("="*100)
-                print("Arquivos movidos com sucesso!")
-                
-                for id_mesa in lista_id_mesa:
-                    analise.alterar_status_mesa(id_mesa)
-            else:
-                print("Não existem mesas ativas no momento.")
-        elif escolha == 0:
-            break
-        else:
-            print("="*100)
-            print("Escolha uma opção válida")
+        lista_id_arquivo = analise.consultar_arquivo_e_id_mesas()
+        
+        criar_pasta_arquivos()
+        print("="*100)
+        
+        arquivos = []
+        for lista in lista_id_arquivo:
+            arquivos.append(lista[0])
             
-# Iniciar o programa
-if __name__ == '__main__':
-    main()
+        analise.download_from_s3(arquivos)
+        
+        analise.dividir_codigo_mesas(lista_id_arquivo)
+        print("="*100)
+        print("Arquivos movidos com sucesso!")
+        
+        for id_mesa in lista_id_mesa:
+            analise.alterar_status_mesa(id_mesa)
+    else:
+        print("Não existem mesas ativas no momento.")
+    
+schedule.every().day.at("18:00").do(main)
+
+while True:
+    schedule.run_pending()
+    tm.sleep(1)

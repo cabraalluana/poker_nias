@@ -2,6 +2,7 @@ import math
 import random
 import os
 import shutil
+import zipfile
 
 from apps.mesas import views
 from prettytable import PrettyTable
@@ -189,7 +190,7 @@ def dividir_codigo_mesas(lista_arquivos):
     # Percorre a lista de arquivos
     for nome_arquivo, id_mesa in lista_arquivos:
         # Diretório de origem do arquivo
-        origem = f"{nome_arquivo}"
+        origem = nome_arquivo
         # Diretório de destino da mesa
         destino = f"mesas_ativas/mesa_{id_mesa}"
         
@@ -197,8 +198,14 @@ def dividir_codigo_mesas(lista_arquivos):
         if not os.path.exists(destino):
             os.makedirs(destino)
         
-        # Move o arquivo para o diretório de destino
-        shutil.move(origem, destino)
+        # Verifica se o arquivo é um arquivo ZIP
+        if nome_arquivo.endswith('.zip'):
+            # Extrai o conteúdo do arquivo ZIP
+            with zipfile.ZipFile(origem, 'r') as zip_ref:
+                zip_ref.extractall(destino)
+        else:
+            # Move o arquivo para o diretório de destino
+            shutil.move(origem, destino)
         
 def alterar_status_mesa(id_mesa):
     views.alterar_status_mesa(id_mesa)
