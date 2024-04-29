@@ -78,6 +78,7 @@ PyYAML==5.4.1
 reportlab==3.6.8
 requests==2.25.1
 s3transfer==0.10.1
+schedule==1.2.1
 SecretStorage==3.3.1
 six==1.16.0
 sqlparse==0.4.4
