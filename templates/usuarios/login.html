@@ -2,7 +2,7 @@
 {% load static %}
 {% block content %}
             <section class="galeria" style="margin-left: 5em">
-                <form action="{% url 'login' %}" method="POST">
+                <form action="{% url 'login' %}" method="POST" class="form-login">
                     {% csrf_token %}
                     <div class="row">
                         {% for field in form.visible_fields %}

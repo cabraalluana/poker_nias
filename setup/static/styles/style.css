@@ -334,21 +334,22 @@ table {
     justify-content: space-between;
 }
 
+.content {
+    flex: 1;
+}
+
 .rodape {
     background-color: #140000;
     width: 100%;
     padding: 1.5rem 3rem;
     box-sizing: border-box;
     display: flex;
-    justify-content: space-between;
+    justify-content: center; /* Centraliza horizontalmente o conteúdo */
+    align-items: center; /* Centraliza verticalmente o conteúdo */
     color: #FFFFFF;
     position: fixed;
     bottom: 0;
     left: 0;
-}
-
-.content {
-    flex: 1;
 }
 
 .rodape__icones {
@@ -360,7 +361,16 @@ table {
 .rodape__texto {
     font-size: 1.1rem;
     text-align: center;
+    margin: 0; /* Remove a margem padrão do <p> */
     border: 1px solid blue;
+}
+
+.form-login {
+    margin-left: 20px; /* Ajuste o valor conforme necessário para mover o formulário para a direita */
+}
+
+.form-container {
+    padding-bottom: 80px; /* Ajuste o valor conforme necessário para garantir que o formulário não seja tampado pelo rodapé */
 }
 
 .tags {
