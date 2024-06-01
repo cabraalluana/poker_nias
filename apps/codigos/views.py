@@ -36,7 +36,9 @@ def enviar_codigo(request, user_id):
                 messages.success(request, 'Código enviado com sucesso!')
                 return redirect('index')
             
-    return render(request, 'codigos/enviar-codigo.html', {'form': form})
+    codigo = Codigo.objects.filter(usuario=request.user)
+            
+    return render(request, 'codigos/enviar-codigo.html', {'form': form, 'cards': codigo})
 
 def lista_codigos(request, codigo_id):
     codigo = get_object_or_404(Codigo, pk=codigo_id)

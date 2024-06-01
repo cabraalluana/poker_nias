@@ -23,6 +23,7 @@
                     <h2 class="cards__titulo">Informações do código ativo</h2>
                     <ul class="cards__lista">
                         {% if cards %}
+                            <p>{{ cards }}</p>
                             {% for codigo in cards %}
                                 <li class="card">
                                     <a href="{% url 'lista_codigos' codigo.id %}">
@@ -34,9 +35,6 @@
                                     </a>
                                     <div class="card__info">
                                         <p class="card__titulo">{{ codigo.arquivo }}</p>
-                                        <div class="card__texto">
-                                            <p class="card__descricao">{{ codigo.data_codigo }}</p>
-                                        </div>
                                     </div>
                                 </li>
                             {% endfor %}
@@ -48,7 +46,6 @@
                     </ul>
                 </div>
             </section>
-            
         </main>
     </div>
 </body>
