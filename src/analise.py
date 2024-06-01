@@ -209,3 +209,47 @@ def dividir_codigo_mesas(lista_arquivos):
         
 def alterar_status_mesa(id_mesa):
     views.alterar_status_mesa(id_mesa)
+    
+def mover_arquivos(id_mesa):
+    # Definindo os caminhos das pastas
+    pasta_origem = f"mesas_ativas/mesa_{id_mesa}"
+    pasta_destino = "DENTs/AIs"
+    
+    # Lista para armazenar os nomes dos arquivos que estão sendo movidos
+    arquivos_movidos = []
+    
+    # Verificando se a pasta de origem existe, se não, criando-a
+    if not os.path.exists(pasta_origem):
+        os.makedirs(pasta_origem)
+    
+    # Verificando se a pasta de destino existe, se não, criando-a
+    if not os.path.exists(pasta_destino):
+        os.makedirs(pasta_destino)
+    
+    # Apagando todos os arquivos na pasta de destino
+    for arquivo in os.listdir(pasta_destino):
+        arquivo_path = os.path.join(pasta_destino, arquivo)
+        try:
+            if os.path.isfile(arquivo_path):
+                os.unlink(arquivo_path)
+        except Exception as e:
+            print(f"Erro ao apagar {arquivo_path}: {e}")
+    
+    # Movendo os arquivos da pasta de origem para a pasta de destino
+    for indice, arquivo in enumerate(os.listdir(pasta_origem), start=1):
+        arquivo_path_origem = os.path.join(pasta_origem, arquivo)
+        arquivos_movidos.append(arquivo)  # Adicionando o nome do arquivo à lista
+        if arquivo.endswith(".m"):
+            novo_nome = f"AI{indice}{os.path.splitext(arquivo)[1]}"
+            arquivo_path_destino = os.path.join(pasta_destino, novo_nome)
+        else:
+            arquivo_path_destino = os.path(pasta_destino, arquivo)
+        try:
+            shutil.move(arquivo_path_origem, arquivo_path_destino)
+        except Exception as e:
+            print(f"Erro ao mover {arquivo_path_origem} para {arquivo_path_destino}: {e}")
+    
+    print("Arquivos movidos com sucesso!")
+    print("=====================================================================")
+    
+    return arquivos_movidos

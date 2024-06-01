@@ -176,4 +176,8 @@ cython_debug/
 # Ignorar pastas e arquivos específicos
 arquivos/
 mesas_ativas/
+zips/
+DENTs/
+
 teste.py
+rodar_automatico.py

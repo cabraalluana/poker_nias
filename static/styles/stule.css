@@ -346,6 +346,7 @@ q:before, q:after {
 
 .rodape__texto {
     font-size: 1.1rem;
+    text-align: center;
 }
 
 .tags {
