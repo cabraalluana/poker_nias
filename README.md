@@ -1,3 +1,4 @@
+
 # Instruções de Configuração e Execução do Projeto
 
 Este é um guia para configurar e executar o projeto em sua máquina local. Certifique-se de seguir cada passo cuidadosamente para garantir uma configuração adequada.

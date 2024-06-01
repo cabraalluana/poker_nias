@@ -126,6 +126,7 @@ table {
     font-size: 2rem;
     line-height: 3rem;
     margin-bottom: 1.5rem;
+    margin-left: 2rem;
 }
 
 .cards__lista{
@@ -192,6 +193,9 @@ table {
 .galeria {
     display: flex;
     width: 100%;
+    margin: 0 auto;
+    margin-bottom: 2em; /* Espaçamento entre as sections */
+    box-sizing: border-box;
 }
 
 .imagem {
@@ -228,16 +232,14 @@ table {
     justify-content: space-between;
     color: #FFFFFF;
     margin-top: 0.5rem;
+    font-size: 1rem;
+    margin-left: 2rem;
 }
 
 .imagem__titulo {
     font-weight: bold;
     line-height: 2rem;
     color: #FFFFFF;
-}
-
-.imagem__texto {
-    font-size: 1rem;
 }
 
 .imagem__descricao {
@@ -340,6 +342,13 @@ table {
     display: flex;
     justify-content: space-between;
     color: #FFFFFF;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+}
+
+.content {
+    flex: 1;
 }
 
 .rodape__icones {
@@ -351,6 +360,7 @@ table {
 .rodape__texto {
     font-size: 1.1rem;
     text-align: center;
+    border: 1px solid blue;
 }
 
 .tags {
@@ -432,7 +442,7 @@ table {
 
 .col-12 {
     flex: 0 0 auto;
-    width: 100%;
+    width: 80%;
 }
 
 .btn {

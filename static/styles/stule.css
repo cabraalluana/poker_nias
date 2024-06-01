@@ -30,6 +30,8 @@ footer, header, hgroup, menu, nav, section {
     display: block;
 }
 body {
+    height: 100%;
+    margin: 0;
     line-height: 1;
     font-family: 'Space Grotesk', sans-serif;
     min-height: 100vh;
@@ -332,14 +334,16 @@ q:before, q:after {
     background-color: #140000;
     width: 100%;
     padding: 1.5rem 3rem;
+    
     box-sizing: border-box;
     display: flex;
     justify-content: space-between;
     color: #FFFFFF;
+    
 }
 
 .rodape__icones {
-    width: 80px;
+    width: 8px;
     display: flex;
     justify-content: space-between;
 }
@@ -347,6 +351,10 @@ q:before, q:after {
 .rodape__texto {
     font-size: 1.1rem;
     text-align: center;
+<<<<<<< Updated upstream:static/styles/stule.css
+=======
+    border: 1px solid blue;
+>>>>>>> Stashed changes:static/styles/style.css
 }
 
 .tags {
