@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from apps.usuarios.forms import LoginForms, CadastroForms, EditarForms, EditarSenhaForm
 from django.contrib.auth.models import User
 from django.contrib import auth, messages
+from apps.codigos.models import Codigo
+from apps.mesas.models import Codigo_Mesa
 
 def login(request):
     form = LoginForms()
@@ -109,9 +111,13 @@ def editar_usuario(request, user_id):
 
 def deletar_usuario(request, user_id):
     user = User.objects.get(id=user_id)
-    user.delete()
-    messages.success(request, 'Deleção feita com sucesso!')
-    
+    code = Codigo.objects.get(usuario = user_id)
+    has_active_code = Codigo_Mesa.objects.filter(codigo=code).exists()
+    if has_active_code:
+        messages.error(request, 'Este usuário possui um código ativo e não pode ser excluído.')
+    else:
+        user.delete()
+        messages.success(request, 'Usuário excluído com sucesso!')
     return redirect('index')
 
 def editar_senha(request):
