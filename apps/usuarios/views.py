@@ -111,13 +111,21 @@ def editar_usuario(request, user_id):
 
 def deletar_usuario(request, user_id):
     user = User.objects.get(id=user_id)
-    code = Codigo.objects.get(usuario = user_id)
+    code = Codigo.objects.get(usuario=user)
     has_active_code = Codigo_Mesa.objects.filter(codigo=code).exists()
+    
     if has_active_code:
-        messages.error(request, 'Este usuário possui um código ativo e não pode ser excluído.')
+        # Verifica se o código está em uma mesa com status True
+        has_active_code_in_active_mesa = Codigo_Mesa.objects.filter(codigo=code, mesa__status=True).exists()
+        if has_active_code_in_active_mesa == False:
+            user.delete()
+            messages.success(request, 'Usuário excluído com sucesso!')
+        else:
+            messages.error(request, 'Este usuário possui um código ativo em uma mesa com status inativo e não pode ser excluído.')
     else:
         user.delete()
         messages.success(request, 'Usuário excluído com sucesso!')
+    
     return redirect('index')
 
 def editar_senha(request):
