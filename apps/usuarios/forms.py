@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.models import User
+from django.contrib.auth.forms import PasswordChangeForm
 
 class LoginForms(forms.Form):
     usuario = forms.CharField(
@@ -179,3 +179,10 @@ class EditarForms(forms.Form):
                 raise forms.ValidationError('Espaços não são permitidos nesse campo.')
             else:
                 return user
+
+class EditarSenhaForm(PasswordChangeForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['old_password'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Senha atual'})
+        self.fields['new_password1'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Nova senha'})
+        self.fields['new_password2'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Confirmação da nova senha'})

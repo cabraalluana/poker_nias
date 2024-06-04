@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from apps.usuarios.forms import LoginForms, CadastroForms, EditarForms
+from apps.usuarios.forms import LoginForms, CadastroForms, EditarForms, EditarSenhaForm
 from django.contrib.auth.models import User
 from django.contrib import auth, messages
 
@@ -113,3 +113,14 @@ def deletar_usuario(request, user_id):
     messages.success(request, 'Deleção feita com sucesso!')
     
     return redirect('index')
+
+def editar_senha(request):
+    if request.method == 'POST':
+        form = EditarSenhaForm(request.user, request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Senha alterada com sucesso!')
+            return redirect('user_profile')  # Redireciona para o perfil do usuário após a edição da senha
+    else:
+        form = EditarSenhaForm(request.user)
+    return render(request, 'usuarios/editar_senha.html', {'form': form})

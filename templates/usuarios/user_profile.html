@@ -29,9 +29,18 @@
                     </div>
                 </div>
                 <div class="col-12 col-lg-12" style="margin-top: 20px;">
-                    <a href="{% url 'editar_usuario' user.id %}"><button class="btn btn-success col-12" style="margin-bottom: 10px;">Editar</button></a>
-                    <a href="{% url 'deletar_usuario' user.id %}" onclick="return confirm('Tem certeza que deseja deletar este usuário?');"><button class="btn btn-danger col-12">Deletar</button></a>
-                </div>
+                    <a href="{% url 'editar_senha' %}">
+                        <button class="btn btn-primary col-12" style="margin-bottom: 10px; background-color: #007bff;"> <!-- Altera a cor de fundo para azul -->
+                            <span style="color: white;">Editar Senha</span> <!-- Altera a cor do texto para branco -->
+                        </button>
+                    </a>
+                    <a href="{% url 'editar_usuario' user.id %}">
+                        <button class="btn btn-success col-12" style="margin-bottom: 10px;">Editar</button>
+                    </a>
+                    <a href="{% url 'deletar_usuario' user.id %}" onclick="return confirm('Tem certeza que deseja deletar este usuário?');">
+                        <button class="btn btn-danger col-12">Deletar</button>
+                    </a>
+                </div>                           
             </div>
         </div>
     </section>
