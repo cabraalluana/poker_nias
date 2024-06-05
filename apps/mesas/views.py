@@ -7,8 +7,6 @@ from django.db import transaction
 from apps.mesas.models import Mesa, Codigo_Mesa
 from django.contrib.auth.models import User
 from django.db.models import F
-from django.http import HttpResponse, Http404
-from django.conf import settings
 
 for model in apps.get_models():
     total_registros = model.objects.count()
@@ -145,3 +143,16 @@ def alterar_status_mesa(id_mesa):
         return f"Mesa com id {id_mesa} não encontrada"
     except Exception as e:
         return f"Erro ao atualizar o status da mesa: {e}"
+    
+def verificar_codigos():
+    # Obtém todos os códigos
+    codigos = Codigo.objects.all()
+
+    for codigo in codigos:
+        # Verifica se o código está associado a alguma mesa com status 1
+        if not Codigo_Mesa.objects.filter(codigo=codigo, mesa__status=True).exists():
+            # Se não estiver, retorna False
+            return False
+
+    # Se todos os códigos estiverem associados a uma mesa com status 1, retorna True
+    return True

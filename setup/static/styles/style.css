@@ -552,6 +552,21 @@ table {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    -webkit-print-color-adjust: exact;
-    color-adjust: exact;
+}
+
+.user-data {
+    color: #ffffff; /* Define a cor do texto como branco */
+    margin-bottom: 5px;
+}
+
+.user-data-box {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 10px;
+}
+
+.user-data-box p {
+    color: #000000; /* Define a cor do texto como preto */
 }

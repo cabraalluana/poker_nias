@@ -243,7 +243,7 @@ def mover_arquivos(id_mesa):
             novo_nome = f"AI{indice}{os.path.splitext(arquivo)[1]}"
             arquivo_path_destino = os.path.join(pasta_destino, novo_nome)
         else:
-            arquivo_path_destino = os.path(pasta_destino, arquivo)
+            arquivo_path_destino = os.path.join(pasta_destino, arquivo)
         try:
             shutil.move(arquivo_path_origem, arquivo_path_destino)
         except Exception as e:
@@ -253,3 +253,6 @@ def mover_arquivos(id_mesa):
     print("=====================================================================")
     
     return arquivos_movidos
+
+def verificar_codigos():
+    return views.verificar_codigos()

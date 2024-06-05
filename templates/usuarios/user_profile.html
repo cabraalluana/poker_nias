@@ -1,0 +1,47 @@
+{% extends 'shared/base-usuario.html' %}
+{% load static %}
+{% block content %}
+    <section class="galeria" style="margin-left: 5em">
+        <div class="form-container">
+            <div class="row">
+                <div class="col-12 col-lg-12">
+                    <label class="user-data">Username</label>
+                    <div class="user-data-box">
+                        <p>{{ user.username }}</p>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-12">
+                    <label class="user-data">First Name</label>
+                    <div class="user-data-box">
+                        <p>{{ user.first_name }}</p>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-12">
+                    <label class="user-data">Last Name</label>
+                    <div class="user-data-box">
+                        <p>{{ user.last_name }}</p>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-12">
+                    <label class="user-data">Email</label>
+                    <div class="user-data-box">
+                        <p>{{ user.email }}</p>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-12" style="margin-top: 20px;">
+                    <a href="{% url 'editar_senha' %}">
+                        <button class="btn btn-primary col-12" style="margin-bottom: 10px;"> <!-- Altera a cor de fundo para azul -->
+                            <span style="color: white;">Editar Senha</span> <!-- Altera a cor do texto para branco -->
+                        </button>
+                    </a>
+                    <a href="{% url 'editar_usuario' user.id %}">
+                        <button class="btn btn-success col-12" style="margin-bottom: 10px;">Editar</button>
+                    </a>
+                    <a href="{% url 'deletar_usuario' user.id %}" onclick="return confirm('Tem certeza que deseja deletar este usuário?');">
+                        <button class="btn btn-danger col-12">Deletar</button>
+                    </a>
+                </div>                           
+            </div>
+        </div>
+    </section>
+{% endblock %}

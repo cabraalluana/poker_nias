@@ -1,13 +1,10 @@
 import os
 import django
-import schedule
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'setup.settings')
 django.setup()
 
 from src import analise
-import time as tm
-from datetime import time, timedelta, datetime
 
 def apagar_conteudo_pasta(pasta):
     try:
@@ -37,17 +34,21 @@ def criar_pasta_arquivos():
         print(f"A pasta '{pasta_arquivos}' já existe.")
 
 def main():
-    # Separar mesas e vincular códigos
-    if analise.numeroJogadores() < 3:
+    if analise.verificar_codigos():
         print("="*100)
-        print("Todos os jogadores estão em uma partida ou não há jogadores o suficiente para uma nova mesa. (Mínimo 3)")
+        print("Todos os jogadores estão em uma partida.")
     else:
-        analise.criar_mesa_e_vincular_codigos(
-            analise.sortear_mesas(
-                analise.numeroJogadores(),
-                analise.get_codigo_ids()
+        # Separar mesas e vincular códigos
+        if analise.numeroJogadores() < 3:
+            print("="*100)
+            print("Não há jogadores o suficiente para uma nova mesa. (Mínimo 3)")
+        else:
+            analise.criar_mesa_e_vincular_codigos(
+                analise.sortear_mesas(
+                    analise.numeroJogadores(),
+                    analise.get_codigo_ids()
+                )
             )
-        )
     print("="*100)
     
     lista_id_mesa = analise.criar_pastas_mesas_ativas()
