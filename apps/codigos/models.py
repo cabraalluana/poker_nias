@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from datetime import date
 
 class Codigo(models.Model):
     arquivo = models.FileField(upload_to="arquivos", blank=False)

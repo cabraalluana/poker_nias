@@ -8,7 +8,8 @@ urlpatterns = [
     path('', include('apps.galeria.urls')),
     path('', include('apps.usuarios.urls')),
     path('', include('apps.codigos.urls')),
-    path('', include('apps.mesas.urls'))
+    path('', include('apps.mesas.urls')),
+    path('', include('apps.resultados.urls')),
 ]
 
 if settings.DEBUG:

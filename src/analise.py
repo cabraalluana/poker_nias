@@ -3,6 +3,7 @@ import random
 import os
 import shutil
 import zipfile
+import pandas as pd
 
 from apps.mesas import views
 from prettytable import PrettyTable
@@ -256,3 +257,10 @@ def mover_arquivos(id_mesa):
 
 def verificar_codigos():
     return views.verificar_codigos()
+
+
+def ler_csv_para_dataframe():
+    # Lê o arquivo CSV e cria um dataframe
+    df_resultados = pd.read_csv("resultados.csv")
+    
+    return df_resultados
