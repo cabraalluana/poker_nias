@@ -119,13 +119,14 @@ Para que o CSS e a página rodem corretamente, é necessário criar um arquivo c
 
 1. Criar o Arquivo .env:
   - No diretório raiz do projeto, crie um arquivo chamado .env.
+
   ![Exemplo2](imagens/exemplo_env.png)
 
 2. Adicionar as Configurações da AWS:
   - Abra o arquivo .env e adicione as configurações da AWS conforme fornecido pelo administrador. Por exemplo:
-      '''bash
+      ```bash
       AWS_ACCESS_KEY_ID=your_access_key_id
       AWS_SECRET_ACCESS_KEY=your_secret_access_key
       AWS_STORAGE_BUCKET_NAME=your_bucket_name
-      '''
+      ```
   Certifique-se de substituir your_access_key_id, your_secret_access_key, e your_bucket_name pelos valores reais fornecidos.
