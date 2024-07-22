@@ -4,6 +4,7 @@ from apps.codigos.forms import CodigoForms
 from apps.codigos.models import Codigo
 from django.http import HttpResponse
 import mimetypes
+import csv
 
 def enviar_codigo(request, user_id):
     if not request.user.is_authenticated:
@@ -65,3 +66,15 @@ def download_codigo(request, codigo_id):
     
 def deletar_codigo(request, user_id):
     Codigo.objects.filter(usuario_id=user_id).delete()
+    
+import csv
+from django.shortcuts import render
+
+def upload_csv(request):
+    file_path = 'resultados.csv'
+    data = []
+    with open(file_path, newline='', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        data = [row for row in reader]
+
+    return render(request, 'codigos/index-codigo.html', {'data': data})

@@ -311,6 +311,49 @@ table {
     box-sizing: border-box;
 }
 
+/* Estilo para o contêiner da tabela */
+.table-container {
+    width: 100%;
+    text-align: center; /* Centraliza o contêiner */
+}
+
+
+/* Estilo básico para a tabela */
+.score-table {
+    width: 35%; /* Ajuste a largura conforme necessário */
+    margin: 0 auto 20px auto; /* Centraliza a tabela na página */
+    border-collapse: collapse;
+    font-size: 18px;
+    text-align: left;
+}
+
+/* Estilo para o cabeçalho */
+.score-table thead tr {
+    background-color: #009879;
+    color: #ffffff;
+    text-align: left;
+    font-weight: bold;
+}
+
+/* Estilo para as células do cabeçalho */
+.score-table th, 
+.score-table td {
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+}
+
+/* Estilo para as linhas do corpo da tabela */
+.score-table tbody tr {
+    border-bottom: 1px solid #dddddd;
+}
+
+/* Cor de fundo branca para as células do corpo da tabela */
+.score-table tbody td {
+    background-color: #ffffff;
+}
+
+
+
 .populares__link {
     display: flex;
     justify-content: center;
