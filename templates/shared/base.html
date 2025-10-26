@@ -1,22 +1,50 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Poker - NIAS</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>NIAS-IA Poker Challenge</title>
+    
     <link rel="stylesheet" href="{% static 'styles/style.css' %}">
-    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.932.0.min.js"></script>
 </head>
-
 <body>
-    {% include 'partials/_menu.html' %}
-    {% block content %}{% endblock %}
-    {% include 'partials/_footer.html' %}
+    <header>
+        <nav class="navbar">
+            <div class="navbar-logo">
+                <a href="{% url 'index' %}">NIAS<span>-IA</span></a>
+            </div>
+            <ul class="navbar-links">
+                <li><a href="{% url 'index' %}" {% if request.path == '/' %}class="active"{% endif %}>Home</a></li>
+                <li><a href="#">Sobre</a></li>
+                <li><a href="{% url 'index_codigo' %}" {% if 'index-codigo' in request.path %}class="active"{% endif %}>Resultados</a></li>
+                
+                {% if user.is_authenticated %}
+                    <li><a href="{% url 'enviar_codigo' user.id %}" {% if 'enviar-codigo' in request.path %}class="active"{% endif %}>Enviar Código</a></li>
+                    <li><a href="{% url 'user_profile' %}" {% if 'profile' in request.path %}class="active"{% endif %}>Perfil</a></li> 
+                    <li><a href="{% url 'logout' %}">Logout</a></li>
+                {% else %}
+                    <li><a href="{% url 'login' %}" {% if 'login' in request.path %}class="active"{% endif %}>Login</a></li>
+                    <li><a href="{% url 'cadastro' %}" {% if 'cadastro' in request.path %}class="active"{% endif %}>Cadastrar</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2025 NIAS-IA. Desenvolvido para o TCC.</p>
+    </footer>
 </body>
 </html>

@@ -1,24 +1,44 @@
-{% extends 'shared/base-login.html' %}
+{% extends 'shared/base.html' %}
 {% load static %}
 {% block content %}
-            <section class="galeria" style="margin-left: 5em">
-                <form action="{% url 'login' %}" method="POST" class="form-login">
-                    {% csrf_token %}
-                    <div class="row">
-                        {% for field in form.visible_fields %}
-                            <div class="col-12 col-lg-12" style="margin-bottom: 10px;">
-                                <label for="{{ field.id_for_label }}" style="color:#D9D9D9; margin-bottom: 5px;">{{ field.label }}</label>
-                                {{ field }}
-                            </div>
-                        {% endfor %}
-                    </div>
-                    <div>
-                        <button type="submit" class="btn btn-success col-12" style="padding: top 5px;">Logar</button>
-                    </div>
-                </form>
-            </section>
-        </main>
+
+<div class="auth-card">
+    <h2>Login</h2>
+    
+    <form method="POST" action="{% url 'login' %}">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="{{ form.usuario.id_for_label }}">Usuário</label>
+            <input 
+                type="text" 
+                name="{{ form.usuario.name }}" 
+                id="{{ form.usuario.id_for_label }}" 
+                class="form-control" 
+                placeholder="Digite o seu nome de usuário"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.senha.id_for_label }}">Senha</label>
+            <input 
+                type="password" 
+                name="{{ form.senha.name }}" 
+                id="{{ form.senha.id_for_label }}" 
+                class="form-control" 
+                placeholder="Digite a sua senha"
+                required
+            >
+        </div>
+
+        <button type="submit" class="btn btn-primary">Entrar</button>
+    </form>
+
+    <div class="auth-switch">
+        <p>Não tem uma conta? <a href="{% url 'cadastro' %}">Cadastre-se!</a></p>
     </div>
-</body>
+</div>
 
 {% endblock %}
+

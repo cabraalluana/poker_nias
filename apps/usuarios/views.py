@@ -6,60 +6,74 @@ from apps.codigos.models import Codigo
 from apps.mesas.models import Codigo_Mesa
 
 def login(request):
-    form = LoginForms()
-
+    """
+    Processa os pedidos para a página de login.
+    """
     if request.method == 'POST':
         form = LoginForms(request.POST)
 
         if form.is_valid():
-            user = form['usuario'].value()
-            senha = form['senha'].value()
+            nome_usuario = form.cleaned_data.get('usuario')
+            senha = form.cleaned_data.get('senha')
 
             usuario = auth.authenticate(
                 request,
-                username=user,
+                username=nome_usuario,
                 password=senha
             )
 
             if usuario is not None:
                 auth.login(request, usuario)
-                messages.success(request, f'{user} logado com sucesso!')
+                
+                # --- LÓGICA DA MENSAGEM ATUALIZADA ---
+                # Verifica se o usuário tem um primeiro nome cadastrado
+                if usuario.first_name:
+                    # Usa o nome completo (primeiro e último nome)
+                    nome_boas_vindas = f"{usuario.first_name} {usuario.last_name}".strip()
+                else:
+                    # Se não tiver, usa o nome de usuário como alternativa
+                    nome_boas_vindas = usuario.username
+                
+                messages.success(request, f'Bem-vindo(a), {nome_boas_vindas}!')
                 return redirect('index')
             else:
-                messages.error(request, 'Erro ao efetuar o login.')
-                return redirect('login')
+                messages.error(request, 'Nome de usuário ou senha inválidos.')
+                return render(request, "usuarios/login.html", {"form": form})
+    else:
+        form = LoginForms()
 
-    return render(request, 'usuarios/login.html', {"form": form})
+    return render(request, "usuarios/login.html", {"form": form})
 
 def cadastro(request):
-    form = CadastroForms()
-
+    """
+    Processa os pedidos para a página de cadastro da forma correta.
+    """
     if request.method == 'POST':
         form = CadastroForms(request.POST)
         
         if form.is_valid():
-            user = form['usuario'].value()
-            primeiro_nome = form['primeiro_nome'].value()
-            ultimo_nome = form['ultimo_nome'].value()
-            email = form['email'].value()
-            senha = form['senha_1'].value()
+            # Se o formulário é válido, as validações (email, senhas) já passaram
+            nome_usuario = form.cleaned_data.get('usuario')
+            primeiro_nome = form.cleaned_data.get('primeiro_nome')
+            ultimo_nome = form.cleaned_data.get('ultimo_nome')
+            email = form.cleaned_data.get('email')
+            senha = form.cleaned_data.get('senha_1')
 
-            if User.objects.filter(username=user).exists():
-                messages.error(request, 'Usuário já existente')
-                return redirect('cadastro')
-            
+            # Cria o usuário com os dados já validados
             usuario = User.objects.create_user(
-                username=user,
+                username=nome_usuario,
                 first_name=primeiro_nome,
                 last_name=ultimo_nome,
                 email=email,
                 password=senha
             )
-
             usuario.save()
             messages.success(request, 'Cadastro efetuado com sucesso!')
-
             return redirect('login')
+        # Se o formulário for inválido, o Django vai renderizar a página com os erros
+        
+    else:
+        form = CadastroForms()
 
     return render(request, 'usuarios/cadastro.html', {"form": form})
 
@@ -86,47 +100,52 @@ def editar_usuario(request, user_id):
         form = EditarForms(request.POST)
         
         if form.is_valid():
-            # Atualize os campos do usuário manualmente
-            usuario.username = form.cleaned_data['usuario']
-            usuario.first_name = form.cleaned_data['primeiro_nome']
-            usuario.last_name = form.cleaned_data['ultimo_nome']
-            usuario.email = form.cleaned_data['email']
-            
+            # Atualiza apenas os campos permitidos
+            usuario.first_name = form.cleaned_data.get('primeiro_nome')
+            usuario.last_name = form.cleaned_data.get('ultimo_nome')
             usuario.save()
-            messages.success(request, 'Usuário editado com sucesso!')
-            
-            auth.login(request, usuario)
-            
-            return redirect('user_profile')  # Redirecione para a página de perfil do usuário após a edição
+            messages.success(request, 'Perfil atualizado com sucesso!')
+            return redirect('user_profile')
+        
     else:
-        # Preencha o formulário com os dados atuais do usuário
+        # Preenche o formulário com os dados existentes
         form = EditarForms(initial={
-            'usuario': usuario.username,
             'primeiro_nome': usuario.first_name,
             'ultimo_nome': usuario.last_name,
-            'email': usuario.email,
         })
     
-    return render(request, 'usuarios/editar_usuario.html', {'form': form, 'user_id': user_id})
+    # Passamos o 'usuario' para o template para mostrar os dados não editáveis
+    return render(request, 'usuarios/editar_usuario.html', {'form': form, 'usuario': usuario, 'user_id': user_id})
 
 def deletar_usuario(request, user_id):
-    user = User.objects.get(id=user_id)
-    code = Codigo.objects.get(usuario=user)
-    has_active_code = Codigo_Mesa.objects.filter(codigo=code).exists()
+    # Obtém o usuário que será deletado
+    user_to_delete = get_object_or_404(User, id=user_id)
     
-    if has_active_code:
-        # Verifica se o código está em uma mesa com status True
-        has_active_code_in_active_mesa = Codigo_Mesa.objects.filter(codigo=code, mesa__status=True).exists()
-        if has_active_code_in_active_mesa == False:
-            user.delete()
-            messages.success(request, 'Usuário excluído com sucesso!')
-        else:
-            messages.error(request, 'Este usuário possui um código ativo em uma mesa com status inativo e não pode ser excluído.')
-    else:
-        user.delete()
-        messages.success(request, 'Usuário excluído com sucesso!')
+    # Tenta encontrar o código associado a este usuário
+    # Usamos .filter() que não gera erro se não encontrar nada
+    user_code = Codigo.objects.filter(usuario=user_to_delete).first()
     
-    return redirect('index')
+    # Se o usuário tiver um código, fazemos as verificações
+    if user_code:
+        # Verifica se o código está em uma mesa ativa
+        is_in_active_mesa = Codigo_Mesa.objects.filter(codigo=user_code, mesa__status=True).exists()
+        
+        if is_in_active_mesa:
+            # Se estiver em uma mesa ativa, impede a exclusão
+            messages.error(request, 'Este usuário possui um código em uma competição ativa e não pode ser excluído.')
+            return redirect('user_profile') # Redireciona de volta para o perfil
+        
+    # Se o usuário não tiver código ou se o código não estiver em uma mesa ativa,
+    # ele pode ser deletado.
+    user_to_delete.delete()
+    messages.success(request, 'Usuário excluído com sucesso!')
+    
+    # Se o usuário deletado for o mesmo que está logado, faz o logout
+    if request.user.pk is None: # O usuário foi deletado
+         auth.logout(request)
+         return redirect('login')
+         
+    return redirect('index') 
 
 def editar_senha(request):
     if request.method == 'POST':

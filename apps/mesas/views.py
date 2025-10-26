@@ -1,4 +1,6 @@
 import subprocess
+import zipfile
+import os
 
 from django.shortcuts import get_object_or_404
 from django.apps import apps
@@ -125,9 +127,61 @@ def consultar_arquivo_e_id_mesas():
         return []
 
 def download_from_s3(file_list):
+    """
+    Baixa uma lista de arquivos do S3. Se um arquivo for .zip,
+    ele é descompactado em uma pasta com o mesmo nome.
+    """
+    # Garante que a pasta de destino principal 'arquivos' exista
+    if not os.path.exists("arquivos"):
+        os.makedirs("arquivos")
+        
     for file_name in file_list:
         s3_path = f"s3://fotografias-poker/static/{file_name}"
-        subprocess.run(["aws", "s3", "cp", s3_path, "arquivos"])
+        local_destination_folder = "arquivos"
+        
+        print(f"Baixando '{file_name}' do S3...")
+        
+        # Executa o comando de download
+        result = subprocess.run(["aws", "s3", "cp", s3_path, local_destination_folder], capture_output=True, text=True)
+        
+        # Verifica se o download foi bem-sucedido
+        if result.returncode != 0:
+            print(f"Erro ao baixar '{file_name}': {result.stderr}")
+            continue # Pula para o próximo arquivo da lista
+
+        print(f"'{file_name}' baixado com sucesso.")
+        
+        # --- LÓGICA DE DESCOMPACTAÇÃO ---
+        
+        # Constrói o caminho completo para o arquivo baixado
+        local_file_path = os.path.join(local_destination_folder, file_name)
+        
+        # 1. Verifica se o arquivo termina com .zip
+        if file_name.endswith('.zip'):
+            print(f"Arquivo '{file_name}' é um zip. Descompactando...")
+            
+            # 2. Cria um nome para a pasta de destino (ex: 'meu_arquivo.zip' -> 'meu_arquivo')
+            unzip_dir_name = os.path.splitext(file_name)[0]
+            unzip_destination_path = os.path.join(local_destination_folder, unzip_dir_name)
+            
+            # Cria a pasta de destino se ela não existir
+            os.makedirs(unzip_destination_path, exist_ok=True)
+            
+            try:
+                # 3. Abre o arquivo .zip e extrai todo o conteúdo para a pasta de destino
+                with zipfile.ZipFile(local_file_path, 'r') as zip_ref:
+                    zip_ref.extractall(unzip_destination_path)
+                
+                print(f"Descompactado com sucesso em: '{unzip_destination_path}'")
+                
+                # 4. (Opcional) Remove o arquivo .zip original após a descompactação
+                # os.remove(local_file_path)
+                # print(f"Arquivo '{file_name}' original removido.")
+                
+            except zipfile.BadZipFile:
+                print(f"Erro: O arquivo '{file_name}' não é um arquivo zip válido ou está corrompido.")
+            except Exception as e:
+                print(f"Ocorreu um erro ao descompactar '{file_name}': {e}")
         
 def alterar_status_mesa(id_mesa):
     try:
