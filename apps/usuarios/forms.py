@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth.models import User
 
 class LoginForms(forms.Form):
     usuario = forms.CharField(
@@ -109,6 +110,13 @@ class CadastroForms(forms.Form):
                 raise forms.ValidationError('Espaços não são permitidos nesse campo.')
             else:
                 return user
+
+    def clean_email(self):
+        """Verifica se o e-mail já existe na base de dados."""
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("Este e-mail já está em uso.")
+        return email
     
     def clean_senha_2(self):
         senha_1 = self.cleaned_data.get('senha_1')
@@ -121,64 +129,19 @@ class CadastroForms(forms.Form):
                 return senha_2
             
 class EditarForms(forms.Form):
-    usuario = forms.CharField(
-        label='Usuário',
-        required=True,
-        max_length=100,
-        widget=forms.TextInput(
-            attrs={
-                'class': 'form-control',
-                'placeholder': 'Ex.: joao_silva'
-            }
-        )
-    )
-    
+    # O formulário agora apenas define os campos que podem ser alterados
     primeiro_nome = forms.CharField(
         label='Primeiro nome',
         required=True,
         max_length=100,
-        widget=forms.TextInput(
-            attrs={
-                'class': 'form-control',
-                'placeholder': 'Ex.: João'
-            }
-        )
+        widget=forms.TextInput(attrs={'class': 'form-control'})
     )
-
     ultimo_nome = forms.CharField(
         label='Último nome',
         required=True,
         max_length=100,
-        widget=forms.TextInput(
-            attrs={
-                'class': 'form-control',
-                'placeholder': 'Ex.: Silva'
-            }
-        )
+        widget=forms.TextInput(attrs={'class': 'form-control'})
     )
-
-    email = forms.EmailField(
-        label='E-mail',
-        required=True,
-        max_length=100,
-        widget=forms.EmailInput(
-            attrs={
-                'class': 'form-control',
-                'placeholder': 'Ex.: joaosilva@xpto.com',
-            }
-        )
-    )
-
-    def clean_usuario(self):
-        user = self.cleaned_data.get('usuario')
-
-        if user:
-            user = user.strip()
-
-            if ' ' in user:
-                raise forms.ValidationError('Espaços não são permitidos nesse campo.')
-            else:
-                return user
 
 class EditarSenhaForm(PasswordChangeForm):
     def __init__(self, *args, **kwargs):

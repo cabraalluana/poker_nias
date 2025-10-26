@@ -1,33 +1,38 @@
-{% extends 'shared/base-cadastro.html' %}
+{% extends 'shared/base.html' %}
 {% load static %}
 {% block content %}
-            <section class="galeria" style="margin-left: 5em">
-                <div class="form-container">
-                    <form action="{% url 'cadastro' %}" method="POST">
-                        {% csrf_token %}
-                        <div class="row">
-                            {% for field in form.visible_fields %}
-                                <div class="col-12 col-lg-12" style="margin-bottom: 10px;">
-                                    <label for="{{ field.id_for_label }}" style="color:#D9D9D9; margin-bottom: 5px;">{{ field.label }}</label>
-                                    {{ field }}
-                                </div>
-                                <div>
-                                    {% for error in field.errors %}
-                                        <div class="alert alert-danger">
-                                            {{ error }}
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            {% endfor %}
-                        </div>
-                        <div>
-                            <button type="submit" class="btn btn-success col-12" style="padding: top 5px;">Cadastrar</button>
-                        </div>
-                    </form>
-                </div>
-            </section>
-        </main>
+
+<div class="auth-card">
+    <h2>Cadastro</h2>
+    
+    <form method="POST" action="{% url 'cadastro' %}">
+        {% csrf_token %}
+
+        {% for error in form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ error }}
+            </div>
+        {% endfor %}
+        
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+
+                {% for error in field.errors %}
+                    <div class="form-field-error">
+                        {{ error }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+        <button type="submit" class="btn btn-primary">Cadastrar</button>
+    </form>
+
+    <div class="auth-switch">
+        <p>Já tem uma conta? <a href="{% url 'login' %}">Faça o login!</a></p>
     </div>
-</body>
+</div>
 
 {% endblock %}

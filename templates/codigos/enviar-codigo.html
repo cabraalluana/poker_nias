@@ -1,53 +1,52 @@
-{% extends 'shared/base-enviar-codigo.html' %}
+{% extends 'shared/base.html' %}
 {% load static %}
 {% block content %}
-            <section class="galeria" style="margin-left: 5em">
-                <form action="{% url 'enviar_codigo' user.id %}" method="POST" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <div class="row">
-                        {% for field in form.visible_fields %}
-                            <div class="col-12 col-lg-12" style="margin-bottom: 10px;">
-                                <label for="{{ field.id_for_label }}" style="color:#D9D9D9; margin-bottom: 5px;">{{ field.label }}</label>
-                                {{ field }}
-                            </div>
-                        {% endfor %}
-                    </div>
-                    <div>
-                        <button type="submit" class="btn btn-success col-12" style="padding: top 5px;">Enviar código</button>
-                    </div>
-                </form>
-            </section>
+
+<div class="upload-grid">
+    
+    <section class="upload-form-card">
+        <h2>Enviar Novo Código</h2>
+        <form action="{% url 'enviar_codigo' user.id %}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
             
-            <section class="galeria">
-                <div class="cards">
-                    <h2 class="cards__titulo">Informações do código ativo</h2>
-                    <ul class="cards__lista">
-                        {% if cards %}
-                            <p>{{ cards }}</p>
-                            {% for codigo in cards %}
-                                <li class="card">
-                                    <a href="{% url 'lista_codigos' codigo.id %}">
-                                        {% if codigo.arquivo == '' or codigo.arquivo == null %}
-                                            <img class="card__imagem" src="{% static 'assets/imagens/galeria/not-found.png' %}" alt="foto">
-                                        {% else %}
-                                            <img class="card__imagem" src="{{ codigo.arquivo.url }}" alt="foto">
-                                        {% endif %}
-                                    </a>
-                                    <div class="card__info">
-                                        <p class="card__titulo">{{ codigo.arquivo }}</p>
-                                    </div>
-                                </li>
-                            {% endfor %}
-                        {% else %}
-                            <div class="imagem__texto">
-                                <p>Pesquisa não retornou nenhum resultado</p>
-                            </div>
-                        {% endif %}
-                    </ul>
+            <div class="form-group">
+                <label for="{{ form.arquivo.id_for_label }}">Arquivo do Bot (.m)</label>
+                
+                <label for="{{ form.arquivo.id_for_label }}" class="file-upload-label">
+                    <span>Escolher arquivo</span>
+                </label>
+                <input 
+                    type="file" 
+                    name="{{ form.arquivo.name }}" 
+                    id="{{ form.arquivo.id_for_label }}"
+                    class="file-upload-input"
+                    onchange="document.querySelector('.file-upload-label span').textContent = this.files[0] ? this.files[0].name : 'Escolher arquivo';"
+                    required
+                >
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem; width: 100%;">Enviar</button>
+        </form>
+    </section>
+
+    <section class="active-code-card">
+        <h2>Seu Código Ativo</h2>
+        {% if cards %}
+            {% for codigo in cards %}
+                <div class="active-code-info">
+                    <img src="{% static 'assets/imagens/matlab-logo.png' %}" alt="Código MATLAB">
+                    <p>{{ codigo.arquivo }}</p>
+                    <a href="{% url 'lista_codigos' codigo.id %}" class="btn btn-secondary" style="width: 100%; margin-top: 1rem;">Ver Detalhes</a>
                 </div>
-            </section>
-        </main>
-    </div>
-</body>
+            {% endfor %}
+        {% else %}
+            <div class="no-active-code">
+                <p>Você ainda não tem um código ativo.</p>
+                <p>Envie seu primeiro bot para começar a competir!</p>
+            </div>
+        {% endif %}
+    </section>
+
+</div>
 
 {% endblock %}

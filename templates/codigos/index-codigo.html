@@ -1,15 +1,16 @@
-{% extends 'shared/base-index-codigo.html' %}
+{% extends 'shared/base.html' %}
 {% load static %}
 {% block content %}
 
+<div class="results-card">
+    <h2>Resultados da Competição</h2>
+
     {% if data %}
-    <div class="table-container">
-        <h2 class="cards__titulo">Resultados</h2>
-        <table class="score-table">
+        <table class="results-table">
             <thead>
                 <tr>
-                    <th>Jogador</th>
-                    <th>Pontuacao</th>
+                    <th>Jogador (Bot)</th>
+                    <th>Pontuação</th>
                 </tr>
             </thead>
             <tbody>
@@ -21,6 +22,9 @@
                 {% endfor %}
             </tbody>
         </table>
-    </div>     
+    {% else %}
+        <p>Ainda não há resultados para exibir. Envie seu código e participe!</p>
     {% endif %}
+</div>
+
 {% endblock %}
