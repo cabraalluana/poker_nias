@@ -1,132 +1,129 @@
+# NIAS-IA Poker Challenge
 
-# Instruções de Configuração e Execução do Projeto
+Este é um guia para configurar e executar o projeto **NIAS-IA Poker Challenge** em sua máquina local. Certifique-se de seguir cada passo cuidadosamente para garantir uma configuração adequada.
 
-Este é um guia para configurar e executar o projeto em sua máquina local. Certifique-se de seguir cada passo cuidadosamente para garantir uma configuração adequada.
+## 📋 Pré-requisitos
 
-## Pré-requisitos
+* **Python 3.11+** instalado em sua máquina. [Baixar Python](https://www.python.org/downloads/).
+* **Git** instalado.
+* **MATLAB** instalado (necessário para a execução da API de competição).
 
-- Python instalado em sua máquina. Você pode baixar e instalar o Python a partir do [site oficial](https://www.python.org/downloads/).
+---
 
-## Instalação
+## 🚀 Instalação e Configuração
 
-1. Instale o `virtualenv` via pip. Se você não tem o pip instalado, siga as instruções [aqui](https://pip.pypa.io/en/stable/installation/):
-   ```bash
-   pip install virtualenv
-   ```
+### 1. Clonar o Repositório
 
-2. Clone o repositório. Selecione o botão verde "Code" no canto superior direito do repositório no GitHub e copie a URL HTTPS.
-   Abra o terminal na pasta desejada e execute o seguinte comando, substituindo `<link_do_repositório>` pela URL copiada:
-   ```bash
-   git clone <link_do_repositório>
-   ```
+Abra o terminal na pasta onde deseja salvar o projeto e execute o comando abaixo (substitua `<link_do_repositório>` pela URL do seu repositório):
 
-## Configuração do Ambiente Virtual
+```bash
+git clone <link_do_repositório>
+````
 
-1. Abra um novo terminal na IDE do Visual Studio Code (Ctrl+J).
+### 2\. Configuração do Ambiente Virtual (.venv)
 
-2. Crie um ambiente virtual na pasta do projeto executando o seguinte comando, dependendo do seu sistema operacional:
-   - **Windows**:
-     ```bash
-     python -m virtualenv .venv
-     ```
-   ou
-     ```bash
-     python -m venv .venv
-     ```
-   - **Linux/macOS**:
-     ```bash
-     python3 -m venv .venv
-     ```
+Abra o terminal na pasta do projeto e crie o ambiente virtual.
 
-3. Ative o ambiente virtual. Dependendo do seu sistema operacional, execute o seguinte comando:
-   - **Windows**:
-     ```bash
-     .venv\Scripts\activate
-     ```
-     Se o comando acima não funcionar devido à execução de scripts estar desabilitada, execute o seguinte comando antes e tente novamente:
-     ```bash
-     Set-ExecutionPolicy RemoteSigned -Scope Process
-     ```
-   - **Linux/macOS**:
-     ```bash
-     source .venv/bin/activate
-     ```
+**Windows:**
 
-   Após ativar o ambiente virtual, você verá "(.venv)" antes do prompt de comando, indicando que está ativado.
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+```
 
-## Instalação de Dependências
+> **Nota:** Se houver erro de permissão no Windows, execute o comando abaixo e tente ativar novamente:
+> `Set-ExecutionPolicy RemoteSigned -Scope Process`
 
-Instale todas as dependências listadas no arquivo "requirements.txt" executando o seguinte comando:
+**Linux / macOS:**
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+### 3\. Instalação de Dependências
+
+Com o ambiente virtual ativado, instale as bibliotecas necessárias:
+
 ```bash
 pip install -r requirements.txt
 ```
 
-## Configuração do Banco de Dados
+-----
 
-1. Execute o seguinte comando para criar migrações:
-   - **Windows**:
-     ```bash
-     python manage.py makemigrations
-     ```
-   - **Linux/macOS**:
-     ```bash
-     python3 manage.py makemigrations
-     ```
+## ⚙️ Configuração Adicional (.env)
 
-2. Execute o seguinte comando para aplicar as migrações e configurar o banco de dados:
-   - **Windows**:
-     ```bash
-     python manage.py migrate
-     ```
-   - **Linux/macOS**:
-     ```bash
-     python3 manage.py migrate
-     ```
+Para que o sistema funcione corretamente (especialmente o upload de arquivos para a AWS), é **obrigatório** configurar as variáveis de ambiente.
 
-## Criação de Superusuário
+1.  Crie um arquivo chamado **`.env`** na raiz do projeto (na mesma pasta do `manage.py`).
+2.  Adicione o seguinte conteúdo ao arquivo, substituindo os valores pelos fornecidos pelo administrador:
 
-Como o projeto foi clonado, não há dados de usuário disponíveis. Você precisará criar um novo superusuário para acessar o sistema. No terminal do VS Code, digite:
-   - **Windows**:
-     ```bash
-     python manage.py createsuperuser
-     ```
-   - **Linux/macOS**:
-     ```bash
-     python3 manage.py createsuperuser
-     ```
+<!-- end list -->
 
-Siga as instruções para configurar o nome de usuário, email e senha do superusuário.
+```ini
+# Configurações do Django
+SECRET_KEY=sua_chave_secreta_aqui
+DEBUG=True
 
-## Execução do Servidor
+# Configurações da AWS
+AWS_ACCESS_KEY_ID=seu_access_key_id
+AWS_SECRET_ACCESS_KEY=seu_secret_access_key
+AWS_STORAGE_BUCKET_NAME=nome_do_seu_bucket
+```
 
-Para executar o projeto localmente, utilize o comando:
-   - **Windows**:
-     ```bash
-     python manage.py runserver
-     ```
-   - **Linux/macOS**:
-     ```bash
-     python3 manage.py runserver
-     ```
+-----
 
-Agora o projeto estará rodando no localhost. Para acessá-lo, clique no link gerado (circulado em vermelho) ou digite-o em seu navegador.
+## 🗄️ Configuração do Banco de Dados
 
-![Exemplo](imagens/exemplo.jpeg)
+Crie as tabelas no banco de dados e um usuário administrador.
 
-## Configuração Adicional
+```bash
+# 1. Criar as migrações
+python manage.py makemigrations
 
-Para que o CSS e a página rodem corretamente, é necessário criar um arquivo chamado .env e adicionar as configurações da AWS que foram enviadas pelo administrador.
+# 2. Aplicar as migrações ao banco
+python manage.py migrate
 
-1. Criar o Arquivo .env:
-    - No diretório raiz do projeto, crie um arquivo chamado .env.
+# 3. Criar superusuário (siga as instruções na tela)
+python manage.py createsuperuser
+```
 
-    ![Exemplo2](imagens/exemplo_env.png)
+-----
 
-2. Adicionar as Configurações da AWS:
-    - Abra o arquivo .env e adicione as configurações da AWS conforme fornecido pelo administrador. Por exemplo:
-        ```bash
-        AWS_ACCESS_KEY_ID=your_access_key_id
-        AWS_SECRET_ACCESS_KEY=your_secret_access_key
-        AWS_STORAGE_BUCKET_NAME=your_bucket_name
-        ```
-      Certifique-se de substituir your_access_key_id, your_secret_access_key, e your_bucket_name pelos valores reais fornecidos.
+## ▶️ Execução do Sistema
+
+Para o sistema funcionar, você precisa rodar dois processos em terminais separados.
+
+### Terminal 1: Servidor Web (Django)
+
+```bash
+python manage.py runserver
+```
+
+Acesse o site em: **https://www.google.com/search?q=http://127.0.0.1:8000**
+
+### Terminal 2: API do MATLAB
+
+Mantenha este terminal aberto para processar as competições:
+
+```bash
+python matlab_api_server.py
+```
+
+-----
+
+## 🐳 Rodando com Docker (Opcional)
+
+Se preferir usar Docker e não quiser configurar o Python manualmente:
+
+1.  Crie o arquivo `.env` como explicado acima.
+2.  Execute:
+
+<!-- end list -->
+
+```bash
+docker-compose up --build
+```
+
+```
+```
