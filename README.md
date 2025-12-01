@@ -112,7 +112,7 @@ python matlab_api_server.py
 
 -----
 
-## 🐳 Rodando com Docker (Opcional)
+## 🐳 Rodando com Docker
 
 Se preferir usar Docker e não quiser configurar o Python manualmente:
 
@@ -123,7 +123,4 @@ Se preferir usar Docker e não quiser configurar o Python manualmente:
 
 ```bash
 docker-compose up --build
-```
-
-```
 ```
