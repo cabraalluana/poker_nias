@@ -256,3 +256,60 @@ def mover_arquivos(id_mesa):
 
 def verificar_codigos():
     return views.verificar_codigos()
+
+def download_unico_e_extrair(arquivo_nome, pasta_destino):
+    """
+    BAIXA DO S3 E RETORNA O CAMINHO LOCAL.
+    Esta função resolve o erro de '0 jogadores válidos'.
+    """
+    import boto3
+    import os
+    import zipfile
+
+    s3 = boto3.client('s3')
+    bucket_name = 'fotografias-poker'
+    s3_folder = 'static/arquivos/' 
+    
+    file_name = os.path.basename(arquivo_nome) 
+    s3_key = f"{s3_folder}{file_name}"
+    local_path = os.path.join(pasta_destino, file_name)
+
+    if not os.path.exists(pasta_destino):
+        os.makedirs(pasta_destino)
+
+    try:
+        print(f"   📥 Baixando '{file_name}'...")
+        s3.download_file(bucket_name, s3_key, local_path)
+        
+        # Se for ZIP, extrai e retorna o caminho do bot lá dentro
+        if file_name.endswith('.zip'):
+            with zipfile.ZipFile(local_path, 'r') as zip_ref:
+                zip_ref.extractall(pasta_destino)
+            os.remove(local_path)
+            # Retorna o caminho do arquivo principal (ajuste se for outro nome)
+            return os.path.join(pasta_destino, 'bot.py') 
+
+        # RETORNO CRUCIAL: Retorna o caminho do .py para o read.py
+        print(f"   ✅ Download concluído: {local_path}")
+        return local_path 
+
+    except Exception as e:
+        print(f"   ❌ Erro no download/extração: {e}")
+        return None
+
+def finalizar_mesa(id_mesa, resultado):
+    """
+    Chama a função na views para atualizar o status no banco de dados.
+    """
+    # Se você quiser que a lógica fique toda na views, use:
+    # views.finalizar_mesa(id_mesa, resultado)
+    
+    # Ou implemente aqui diretamente para garantir que o read.py funcione:
+    from apps.mesas.models import Mesa # Ajuste o import conforme seu projeto
+    try:
+        mesa = Mesa.objects.get(id=id_mesa)
+        mesa.status = "Finalizado"
+        mesa.save()
+        print(f"   🏁 Mesa {id_mesa} atualizada para 'Finalizado' no banco.")
+    except Exception as e:
+        print(f"   ⚠️ Erro ao atualizar status: {e}")
