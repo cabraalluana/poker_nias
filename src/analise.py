@@ -299,17 +299,24 @@ def download_unico_e_extrair(arquivo_nome, pasta_destino):
 
 def finalizar_mesa(id_mesa, resultado):
     """
-    Chama a função na views para atualizar o status no banco de dados.
+    Altera o status da mesa para desativado (False) após a simulação.
     """
-    # Se você quiser que a lógica fique toda na views, use:
-    # views.finalizar_mesa(id_mesa, resultado)
+    # Import local para evitar problemas de carregamento do Django
+    from apps.mesas.models import Mesa 
     
-    # Ou implemente aqui diretamente para garantir que o read.py funcione:
-    from apps.mesas.models import Mesa # Ajuste o import conforme seu projeto
     try:
         mesa = Mesa.objects.get(id=id_mesa)
-        mesa.status = "Finalizado"
+        # De acordo com a sua lógica: True = Ativa, False = Desativada
+        mesa.status = False 
         mesa.save()
-        print(f"   🏁 Mesa {id_mesa} atualizada para 'Finalizado' no banco.")
+        
+        print(f"   🏁 SUCESSO: Mesa {id_mesa} desativada no Banco de Dados.")
+        
+        # Opcional: Aqui você também pode salvar o 'resultado' em um campo de Log na Mesa
+        # mesa.log_resultado = str(resultado)
+        # mesa.save()
+
+    except Mesa.DoesNotExist:
+        print(f"   ⚠️ ERRO: Mesa {id_mesa} não encontrada para finalizar.")
     except Exception as e:
-        print(f"   ⚠️ Erro ao atualizar status: {e}")
+        print(f"   ⚠️ ERRO ao atualizar status da mesa {id_mesa}: {e}")
