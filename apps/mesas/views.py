@@ -186,8 +186,8 @@ def verificar_codigos():
     for codigo in codigos:
         # Verifica se o código está associado a alguma mesa com status 1
         if not Codigo_Mesa.objects.filter(codigo=codigo, mesa__status=True).exists():
-            # Se não estiver, retorna False
-            return False
+            # SE NÃO ESTIVER EM MESA ATIVA, significa que temos trabalho!
+            return True
 
-    # Se todos os códigos estiverem associados a uma mesa com status 1, retorna True
-    return True
+    # Se todos já estiverem em mesas ativas, não há nada a fazer
+    return False
