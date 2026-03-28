@@ -320,3 +320,29 @@ def finalizar_mesa(id_mesa, resultado):
         print(f"   ⚠️ ERRO: Mesa {id_mesa} não encontrada para finalizar.")
     except Exception as e:
         print(f"   ⚠️ ERRO ao atualizar status da mesa {id_mesa}: {e}")
+
+def obter_vencedor_log(caminho_log, lista_jogadores):
+    """
+    Lê a última linha do log e retorna o nome do vencedor.
+    """
+    try:
+        with open(caminho_log, 'r') as f:
+            linhas = f.readlines()
+            if not linhas:
+                return "Log vazio"
+            
+            # Pega a última linha e transforma em lista de números
+            ultima_linha = linhas[-1].split()
+            # Os stacks começam a partir do índice 5 (após torneio, fase, acao, aposta e pote)
+            stacks = [float(s) for s in ultima_linha[5:]]
+            
+            # Encontra o índice do maior stack
+            indice_vencedor = stacks.index(max(stacks))
+            
+            # Mapeia o índice para o nome do arquivo/usuário
+            path_vencedor = lista_jogadores[indice_vencedor]
+            nome_vencedor = os.path.basename(path_vencedor).replace('bot_', '').replace('.py', '')
+            
+            return nome_vencedor.capitalize()
+    except Exception as e:
+        return f"Erro ao ler vencedor: {e}"
