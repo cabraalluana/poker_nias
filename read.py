@@ -1,12 +1,9 @@
 import os
 import django
 import shutil
-import zipfile
-import boto3
-from botocore.exceptions import ClientError
+import time
 
-# 1. Configuração do ambiente Django
-# Garante que o script consegue aceder aos modelos do projeto
+# Configurações Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'setup.settings')
 django.setup()
 
@@ -15,80 +12,116 @@ from dents.engine import simular_partida
 from dents.infrastructure import criar_pasta_logs
 
 def main():
+    # --- CRONÔMETRO GLOBAL ---
+    inicio_torneio = time.time() 
+    
+    primeira_rodada = True
+    jogadores_para_proxima_fase = []
+    fase_atual = 1
+
     print("\n" + "="*60)
-    print("🤖 ORQUESTRADOR DEnTS ATIVO")
+    print("🤖 ORQUESTRADOR DEnTS - MODO FUNIL (MTT)")
     print("="*60)
 
-    # 1. Busca mesas ativas ou realiza novo sorteio
-    lista_id_mesa = analise.criar_pastas_mesas_ativas()
-
-    if not lista_id_mesa:
-        if analise.verificar_codigos():
-            num_jogadores = analise.numeroJogadores()
-            if num_jogadores >= 2:
-                lista_ids = analise.get_codigo_ids()
-                mesas_sorteadas = analise.sortear_mesas(num_jogadores, lista_ids)
-                analise.criar_mesa_e_vincular_codigos(mesas_sorteadas)
-                lista_id_mesa = analise.criar_pastas_mesas_ativas()
-
-    if not lista_id_mesa:
-        print("\n🏁 NADA PARA PROCESSAR.")
-        return
-
-    # 2. Processamento das Partidas
-    lista_arquivos_mesas = analise.consultar_arquivo_e_id_mesas()
-
-    for id_mesa in lista_id_mesa:
-        print(f"\n>>> EXECUTANDO MESA {id_mesa} <<<")
-        pasta_mesa = f"./mesas_ativas/mesa_{id_mesa}"
-        os.makedirs(pasta_mesa, exist_ok=True)
+    while True:
+        print(f"\n📢 INICIANDO FASE {fase_atual}...")
         
-        caminhos_s3 = [item[0] for item in lista_arquivos_mesas if item[1] == id_mesa]
-        caminhos_locais = []
+        # --- PASSO 1: SORTEIO / SELEÇÃO ---
+        if primeira_rodada:
+            ids_disponiveis = analise.get_codigo_ids()
+            primeira_rodada = False
+        else:
+            ids_disponiveis = jogadores_para_proxima_fase
+        
+        if len(ids_disponiveis) < 2:
+            print("🏁 Fim do processamento: Jogadores insuficientes para nova fase.")
+            break
 
-        for path_s3 in caminhos_s3:
-            local = analise.download_unico_e_extrair(path_s3, pasta_mesa)
-            if local and os.path.exists(local):
-                caminhos_locais.append(local)
+        # Sorteia e vincula no banco
+        mesas_sorteadas = analise.sortear_mesas(len(ids_disponiveis), ids_disponiveis)
+        analise.criar_mesa_e_vincular_codigos(mesas_sorteadas)
+        
+        mesas_ativas = analise.criar_pastas_mesas_ativas()
+        num_mesas = len(mesas_ativas)
+        
+        logs_fase, ids_fase = [], []
+        lista_arquivos_mesas = analise.consultar_arquivo_e_id_mesas()
 
-        if len(caminhos_locais) < 2:
-            print(f"   ❌ Erro: Jogadores insuficientes na Mesa {id_mesa}.")
-            continue
-
-        # --- BLOCO NOVO: MAPEAMENTO DE USUÁRIOS ---
-        print(f"\n   --- Formação da Mesa {id_mesa} ---")
-        for i, path in enumerate(caminhos_locais):
-            # Limpa o nome do arquivo para mostrar apenas o nome do aluno
-            nome_aluno = os.path.basename(path).replace('bot_', '').replace('.py', '')
-            print(f"   👤 Bot {i+1}: {nome_aluno.capitalize()}")
-        print("   --------------------------------\n")
-
-        try:
-            config = {
-                "id_mesa": id_mesa,
-                "jogadores": caminhos_locais,
-                "numJogadores": len(caminhos_locais),
-                "numTorneios": 10,
-                "pasta_logs": criar_pasta_logs()
-            }
-
-            print(f"   🎲 Simulando partida...")
-            resultado = simular_partida(config)
+        # --- PASSO 2: EXECUÇÃO DAS MESAS ---
+        for id_mesa in mesas_ativas:
+            print(f"\n>>> EXECUTANDO MESA {id_mesa} <<<")
+            pasta_mesa = f"./mesas_ativas/mesa_{id_mesa}"
+            os.makedirs(pasta_mesa, exist_ok=True)
             
-            caminho_log_final = os.path.join(config['pasta_logs'], 'log_acoes.txt')
-            vencedor = analise.obter_vencedor_log(caminho_log_final, caminhos_locais)
+            # Filtra os dados desta mesa
+            dados_mesa = [item for item in lista_arquivos_mesas if item[2] == id_mesa]
+            caminhos_locais = []
+            ids_validos = []
+
+            for id_cod, path_s3, _ in dados_mesa:
+                local = analise.download_unico_e_extrair(path_s3, pasta_mesa)
+                if local and os.path.exists(local):
+                    caminhos_locais.append(local)
+                    ids_validos.append(id_cod)
+
+            if len(caminhos_locais) < 2:
+                print(f"   ❌ Erro: Jogadores insuficientes na Mesa {id_mesa}.")
+                continue
+
+            try:
+                pasta_log = criar_pasta_logs()
+                config = {
+                    "id_mesa": id_mesa, 
+                    "jogadores": caminhos_locais, 
+                    "numJogadores": len(caminhos_locais), 
+                    "numTorneios": 10, 
+                    "pasta_logs": pasta_log
+                }
+                
+                print(f"   🎲 Simulando partida...")
+                simular_partida(config)
+                
+                # Armazena dados para o ranking/promoção
+                logs_fase.append(pasta_log)
+                ids_fase.append(ids_validos)
+                
+                analise.finalizar_mesa(id_mesa, None)
+                print(f"   ✅ Mesa {id_mesa} finalizada.")
+                
+            except Exception as e:
+                print(f"   ❌ Erro na mesa {id_mesa}: {e}")
+
+        # --- PASSO 3: RANKING DEFINITIVO OU PROMOÇÃO ---
+        if not logs_fase:
+            print("❌ Nenhuma mesa foi processada com sucesso nesta fase. Abortando.")
+            break
+
+        if num_mesas > 1:
+            print(f"\n🔄 FASE {fase_atual} CONCLUÍDA. Promovendo vencedores...")
+            jogadores_para_proxima_fase = analise.obter_sobreviventes_da_fase(mesas_ativas, logs_fase, ids_fase)
+            fase_atual += 1
+        else:
+            # --- MESA FINAL ---
+            print("\n" + "⭐"*20)
+            print("🏆 RANKING DEFINITIVO DO TORNEIO 🏆")
+            print("⭐"*20)
             
-            print("\n" + "🏆" + "-"*30)
-            print(f"   VENCEDOR DA MESA: {vencedor}")
-            print("-"*32 + "\n")
-            # ----------------------------------------
+            ranking_final = analise.obter_ranking_mesa(os.path.join(logs_fase[0], 'log_acoes.txt'), ids_fase[0])
+            
+            for pos, player in enumerate(ranking_final, start=1):
+                medalha = "🥇" if pos == 1 else "🥈" if pos == 2 else "🥉" if pos == 3 else f"{pos}º"
+                print(f"   {medalha} {player['nome']}: {player['fichas']:.2f} fichas")
+            
+            print("="*60)
+            break 
 
-            analise.finalizar_mesa(id_mesa, resultado)
-
-        except Exception as e:
-            print(f"   ❌ ERRO na Mesa {id_mesa}: {e}")
-
-    print("\n" + "="*60)
+    # --- TEMPO TOTAL ---
+    tempo_total = time.time() - inicio_torneio
+    minutos = int(tempo_total // 60)
+    segundos = int(tempo_total % 60)
+    
+    print(f"\n⏱️ TEMPO TOTAL DE PROCESSAMENTO: {minutos}m {segundos}s")
+    print("🏁 PROCESSO CONCLUÍDO COM SUCESSO!\n")
 
 if __name__ == "__main__":
     main()
