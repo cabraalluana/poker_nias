@@ -102,20 +102,6 @@ def sortear_mesas(num_jogadores, listaIDs):
     # Retornar o vetor com as linhas da coluna 2 da tabela
     return [jogadores_na_mesa for jogadores_na_mesa in tabela.values()]
 
-def criar_mesa_e_vincular_codigos(listas_de_codigos):
-    """
-        Esta função cria novas mesas com status "ativo" e vincula códigos específicos a essas mesas.
-
-        :para listas_de_codigos: Uma lista de listas contendo IDs dos códigos a serem vinculados a cada mesa.
-                                Cada lista interna contém os IDs dos códigos que serão vinculados a uma mesa específica.
-                                Exemplo: [[1, 2, 3], [4, 5]] indica que a primeira mesa terá os códigos com IDs 1, 2 e 3,
-                                enquanto a segunda mesa terá os códigos com IDs 4 e 5.
-        :return: A função não retorna nada, mas imprime uma mensagem indicando se as mesas e códigos foram vinculados com sucesso
-                ou exibe uma mensagem de erro em caso de falha.
-    """
-    
-    views.criar_mesa_e_vincular_codigos(listas_de_codigos)
-    
 def obter_id_mesas(status):
     return views.obter_id_mesas(status)
 
@@ -179,9 +165,6 @@ def criar_pastas_mesas_ativas():
             os.makedirs(caminho_completo)
             
     return listaIdMesa
-
-def consultar_arquivo_e_id_mesas():
-    return views.consultar_arquivo_e_id_mesas()
 
 def download_from_s3(file_list):
     views.download_from_s3(file_list)
@@ -346,3 +329,134 @@ def obter_vencedor_log(caminho_log, lista_jogadores):
             return nome_vencedor.capitalize()
     except Exception as e:
         return f"Erro ao ler vencedor: {e}"
+
+def promover_jogadores(id_mesas_finalizadas, pasta_dos_logs):
+    """Pasta_dos_logs deve ser a mesma 'Log-YYYY...' gerada pelo read.py"""
+    classificados = []
+    for id_mesa in id_mesas_finalizadas:
+        # Busca o log dentro da pasta timestamped do dia
+        caminho_log = os.path.join(pasta_dos_logs, 'log_acoes.txt') 
+        
+        # Precisamos dos IDs que estavam naquela mesa específica
+        from apps.mesas.models import Mesa
+        ids_mesa = list(Mesa.objects.get(id=id_mesa).codigos_participantes.values_list('id', flat=True))
+        
+        ranking = obter_ranking_mesa(caminho_log, ids_mesa)
+        
+        # Promove os 50% melhores
+        corte = len(ranking) // 2
+        for i in range(corte):
+            classificados.append(ranking[i]['id_codigo'])
+            
+    return classificados
+
+def consultar_arquivo_e_id_mesas():
+    """Retorna lista de (id_codigo, caminho_s3, id_mesa) usando a tabela ponte."""
+    from apps.mesas.models import Mesa, Codigo_Mesa
+    mesas_ativas = Mesa.objects.filter(status=True)
+    resultado = []
+    
+    for mesa in mesas_ativas:
+        # Filtra na tabela ponte 'Codigo_Mesa'
+        vinculos = Codigo_Mesa.objects.filter(mesa=mesa)
+        for v in vinculos:
+            # Retorna ID, Caminho do arquivo e ID da mesa
+            resultado.append((v.codigo.id, v.codigo.arquivo.name, mesa.id))
+    return resultado
+
+def criar_mesa_e_vincular_codigos(mesas_sorteadas):
+    """
+    Cria os objetos Mesa e estabelece o vínculo na tabela ponte Codigo_Mesa.
+    """
+    from apps.mesas.models import Mesa, Codigo, Codigo_Mesa 
+
+    for grupo in mesas_sorteadas:
+        # 1. Cria a Mesa - Usando apenas o campo 'status', que é o único disponível
+        nova_mesa = Mesa.objects.create(
+            status=True
+        )
+        
+        # 2. Vincula cada ID de código a esta nova mesa na tabela ponte
+        for codigo_id in grupo:
+            codigo_obj = Codigo.objects.get(id=codigo_id) #
+            
+            # Cria o vínculo na tabela intermediária Codigo_Mesa
+            Codigo_Mesa.objects.create(
+                codigo=codigo_obj,
+                mesa=nova_mesa
+            )
+            
+    print("   ✅ Mesas e códigos vinculados com sucesso na tabela ponte.")
+
+def obter_ranking_mesa(caminho_log, lista_ids_jogadores):
+    """Lê o log e retorna lista ordenada. Inclui o ID para o funil."""
+    from apps.mesas.models import Codigo
+    with open(caminho_log, 'r') as f:
+        linhas = f.readlines()
+    if not linhas: return []
+    
+    ultima_linha = linhas[-1].split()
+    # Stacks finais começam no índice 5 no log_acoes.txt
+    stacks_finais = [float(s) for s in ultima_linha[5:]]
+    
+    ranking = []
+    for i, stack in enumerate(stacks_finais):
+        id_atual = lista_ids_jogadores[i]
+        # Busca o nome do aluno usando o relacionamento 'usuario'
+        nome = Codigo.objects.get(id=id_atual).usuario.first_name 
+        ranking.append({
+            "id_codigo": id_atual,  # ADICIONADO: Necessário para a promoção de fase
+            "nome": nome.capitalize(), 
+            "fichas": stack
+        })
+    
+    # Ordena do maior stack para o menor
+    return sorted(ranking, key=lambda x: x['fichas'], reverse=True)
+
+def obter_classificados_torneio(id_mesas_finalizadas, logs_paths):
+    """
+    Lê os logs das mesas terminadas e retorna apenas os IDs dos 
+    5 melhores de cada uma para a próxima fase.
+    """
+    classificados = []
+    for i, id_mesa in enumerate(id_mesas_finalizadas):
+        # Gera o ranking daquela mesa específica
+        ranking = obter_ranking_mesa(logs_paths[i], ids_jogadores_da_mesa)
+        
+        # Pega os 5 primeiros (Top 50%)
+        for j in range(5):
+            classificados.append(ranking[j]['id'])
+            
+    return classificados # Retorna a lista de 10 IDs para a Mesa Final
+
+def promover_vencedores(id_mesa, ranking):
+    """
+    Promove o Top 50% dos jogadores. Remove o vínculo da mesa atual
+    para que fiquem 'livres' para o próximo sorteio (Fase Final).
+    """
+    from apps.mesas.models import Codigo_Mesa
+    # Em uma mesa de 10, promovemos os 5 primeiros
+    qtd_vagas = len(ranking) // 2
+    
+    for i in range(qtd_vagas):
+        id_cod = ranking[i]['id']
+        # Ao deletar o vínculo aqui, o 'verificar_codigos()' voltará a ver este ID como disponível
+        Codigo_Mesa.objects.filter(codigo_id=id_cod, mesa_id=id_mesa).delete()
+    
+    print(f"   📣 {qtd_vagas} jogadores promovidos para a próxima fase.")
+
+def obter_sobreviventes_da_fase(ids_mesas_rodadas, pastas_logs, lista_ids_por_mesa):
+    """
+    Recebe as mesas que acabaram de rodar e devolve os 5 melhores de cada.
+    """
+    promovidos = []
+    for i, id_mesa in enumerate(ids_mesas_rodadas):
+        caminho_log = os.path.join(pastas_logs[i], 'log_acoes.txt')
+        # Pega o ranking daquela mesa específica
+        ranking = obter_ranking_mesa(caminho_log, lista_ids_por_mesa[i])
+        
+        # Pega os 5 primeiros (Top 50%)
+        for j in range(min(5, len(ranking))):
+            promovidos.append(ranking[j]['id_codigo'])
+            
+    return promovidos # IDs prontos para a próxima rodada
