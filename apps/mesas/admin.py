@@ -1,9 +1,14 @@
+import subprocess
+import sys
 from django.contrib import admin
 from django.utils.html import format_html
 from django.conf import settings
+from django.urls import path
+from django.shortcuts import redirect
+from django.contrib import messages
 from apps.mesas.models import Mesa, Codigo_Mesa, Torneio, ResultadoTorneio, HistoricoPartida
 
-# --- 1. CONFIGURAÇÕES DE INLINE (Visualização dentro do Torneio) ---
+# --- 1. CONFIGURAÇÕES DE INLINE ---
 
 class ResultadoInline(admin.TabularInline):
     model = ResultadoTorneio
@@ -17,7 +22,6 @@ class ResultadoInline(admin.TabularInline):
 class PartidaInline(admin.TabularInline):
     model = HistoricoPartida
     extra = 0
-    # Adicionamos 'ver_log_s3' para ter o link clicável aqui dentro também
     fields = ('mesa_id_original', 'fase', 'tempo_processamento_ms', 'ver_log_s3')
     readonly_fields = ('mesa_id_original', 'fase', 'tempo_processamento_ms', 'ver_log_s3')
     can_delete = False
@@ -26,26 +30,50 @@ class PartidaInline(admin.TabularInline):
 
     def ver_log_s3(self, obj):
         if obj.log_arquivo:
+            # Assume-se que o caminho guardado é o relativo (Key do S3)
             url = f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{obj.log_arquivo}"
-            return format_html('<a href="{}" target="_blank">📄 Abrir Log</a>', url)
+            return format_html('<a href="{}" target="_blank" style="font-weight: bold;">📄 Abrir Log</a>', url)
         return "N/A"
     ver_log_s3.short_description = "Link AWS"
 
-# --- 2. CONFIGURAÇÕES PRINCIPAIS ---
+# --- 2. CONFIGURAÇÃO DO TORNEIO ADMIN ---
 
 class ListandoTorneio(admin.ModelAdmin):
-    list_display = ("id", "data_inicio", "quantidade_jogadores", "exibir_duracao")
+    list_display = ("id", "data_inicio", "quantidade_jogadores", "exibir_duracao", "botao_executar")
     list_display_links = ("id", "data_inicio")
     list_filter = ("data_inicio",)
-    
-    # O segredo para o TCC: mostra resultados e partidas na mesma tela
     inlines = [ResultadoInline, PartidaInline]
 
     def exibir_duracao(self, obj):
         if obj.tempo_total_ms:
             return f"{obj.tempo_total_ms / 1000:.2f} segundos"
-        return "Pendente..."
-    exibir_duracao.short_description = "Tempo de Execução"
+        return "Em execução..."
+    exibir_duracao.short_description = "Tempo Total"
+
+    # --- Lógica do Botão de Execução ---
+    def botao_executar(self, obj):
+        return format_html(
+            '<a class="button" href="/admin/mesas/torneio/run/" style="background-color: #28a745; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none;">▶ Executar Torneio</a>'
+        )
+    botao_executar.short_description = "Ações Web"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('run/', self.admin_site.admin_view(self.view_executar_torneio)),
+        ]
+        return custom_urls + urls
+
+    def view_executar_torneio(self, request):
+        try:
+            # Dispara o read.py em segundo plano usando o interpretador atual
+            subprocess.Popen([sys.executable, "read.py"])
+            messages.success(request, "🚀 Torneio disparado com sucesso em segundo plano!")
+        except Exception as e:
+            messages.error(request, f"❌ Falha ao iniciar torneio: {str(e)}")
+        return redirect("../")
+
+# --- 3. CONFIGURAÇÕES ADICIONAIS ---
 
 class ListandoHistoricoPartida(admin.ModelAdmin):
     list_display = ("id", "torneio", "fase", "mesa_id_original", "ver_log_clicavel")
@@ -58,10 +86,8 @@ class ListandoHistoricoPartida(admin.ModelAdmin):
         return "Sem log"
     ver_log_clicavel.short_description = "Caminho AWS"
 
-# --- 3. CLASSES ORIGINAIS (Mantidas para compatibilidade) ---
-
 class ListandoMesa(admin.ModelAdmin):
-    list_display = ("id", "status", "torneio")
+    list_display = ("id", "status")
     list_display_links = ("id", "status")
     search_fields = ("status", )
     list_per_page = 10
@@ -72,10 +98,10 @@ class ListandoCodigoMesa(admin.ModelAdmin):
     search_fields = ("mesa_id", )
     list_per_page = 10
 
-# --- 4. REGISTOS NO SISTEMA ---
+# --- 4. REGISTOS ---
 
 admin.site.register(Torneio, ListandoTorneio)
-admin.site.register(ResultadoTorneio) # Pode registar à parte se quiseres ver a lista global
 admin.site.register(HistoricoPartida, ListandoHistoricoPartida)
 admin.site.register(Mesa, ListandoMesa)
 admin.site.register(Codigo_Mesa, ListandoCodigoMesa)
+admin.site.register(ResultadoTorneio)
