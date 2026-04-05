@@ -2,6 +2,7 @@ import subprocess
 import zipfile
 import os
 import boto3
+import sys
 
 from django.shortcuts import get_object_or_404
 from django.apps import apps
@@ -11,6 +12,11 @@ from apps.mesas.models import Mesa, Codigo_Mesa
 from django.contrib.auth.models import User
 from django.db.models import F
 from botocore.exceptions import ClientError
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from apps.mesas.models import Torneio
+from .serializers import TorneioSerializer
 
 for model in apps.get_models():
     total_registros = model.objects.count()
@@ -191,3 +197,23 @@ def verificar_codigos():
 
     # Se todos já estiverem em mesas ativas, não há nada a fazer
     return False
+
+class UltimoTorneioAPI(APIView):
+    """Retorna o status e ranking do torneio mais recente"""
+    def get(self, request):
+        torneio = Torneio.objects.last()
+        if not torneio:
+            return Response({"erro": "Nenhum torneio realizado."}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = TorneioSerializer(torneio)
+        return Response(serializer.data)
+
+class DispararTorneioAPI(APIView):
+    """Gatilho para iniciar o read.py via requisição POST"""
+    def post(self, request):
+        try:
+            # sys.executable garante que usamos o Python do ambiente virtual/docker
+            subprocess.Popen([sys.executable, "read.py"])
+            return Response({"mensagem": "🚀 Torneio iniciado em segundo plano!"}, status=status.HTTP_202_ACCEPTED)
+        except Exception as e:
+            return Response({"erro": f"Falha ao iniciar: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
