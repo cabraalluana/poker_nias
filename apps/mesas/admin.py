@@ -22,18 +22,26 @@ class ResultadoInline(admin.TabularInline):
 class PartidaInline(admin.TabularInline):
     model = HistoricoPartida
     extra = 0
-    fields = ('mesa_id_original', 'fase', 'tempo_processamento_ms', 'ver_log_s3')
-    readonly_fields = ('mesa_id_original', 'fase', 'tempo_processamento_ms', 'ver_log_s3')
+    fields = ('mesa_id_original', 'fase', 'status_formatado', 'tempo_processamento_ms', 'ver_log_s3')
+    readonly_fields = ('mesa_id_original', 'fase', 'status_formatado', 'tempo_processamento_ms', 'ver_log_s3')
     can_delete = False
     verbose_name = "Mesa Processada"
     verbose_name_plural = "Histórico de Mesas"
 
+    def status_formatado(self, obj):
+        colors = {'sucesso': '#28a745', 'timeout': '#ffc107', 'erro_bot': '#dc3545'}
+        color = colors.get(obj.status_execucao, '#6c757d')
+        return format_html(
+            '<span style="background-color: {}; color: white; padding: 2px 8px; border-radius: 10px; font-weight: bold; font-size: 10px; text-transform: uppercase;">{}</span>',
+            color, obj.status_execucao
+        )
+    status_formatado.short_description = "Status"
+
     def ver_log_s3(self, obj):
         if obj.log_arquivo:
-            # Assume-se que o caminho guardado é o relativo (Key do S3)
             url = f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{obj.log_arquivo}"
-            return format_html('<a href="{}" target="_blank" style="font-weight: bold;">📄 Abrir Log</a>', url)
-        return "N/A"
+            return format_html('<a href="{}" target="_blank" style="font-weight: bold; color: #007bff;">📄 Abrir Log</a>', url)
+        return format_html('<span style="color: #999;">N/A</span>')
     ver_log_s3.short_description = "Link AWS"
 
 # --- 2. CONFIGURAÇÃO DO TORNEIO ADMIN ---
@@ -46,60 +54,54 @@ class ListandoTorneio(admin.ModelAdmin):
 
     def exibir_duracao(self, obj):
         if obj.tempo_total_ms:
-            return f"{obj.tempo_total_ms / 1000:.2f} segundos"
-        return "Em execução..."
-    exibir_duracao.short_description = "Tempo Total"
+            return f"{obj.tempo_total_ms / 1000:.2f} s"
+        return format_html('<span style="color: #e67e22; font-style: italic;">Processando...</span>')
+    exibir_duracao.short_description = "Duração"
 
-    # --- Lógica do Botão de Execução ---
     def botao_executar(self, obj):
         return format_html(
-            '<a class="button" href="/admin/mesas/torneio/run/" style="background-color: #28a745; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none;">▶ Executar Torneio</a>'
+            '<a class="button" href="/admin/mesas/torneio/run/" style="background-color: #28a745; color: white; padding: 5px 12px; border-radius: 4px; text-decoration: none; font-weight: bold;">▶ DISPARAR TORNEIO</a>'
         )
-    botao_executar.short_description = "Ações Web"
+    botao_executar.short_description = "Controle Web"
 
     def get_urls(self):
         urls = super().get_urls()
-        custom_urls = [
-            path('run/', self.admin_site.admin_view(self.view_executar_torneio)),
-        ]
+        custom_urls = [path('run/', self.admin_site.admin_view(self.view_executar_torneio))]
         return custom_urls + urls
 
     def view_executar_torneio(self, request):
         try:
-            # Dispara o read.py em segundo plano usando o interpretador atual
             subprocess.Popen([sys.executable, "read.py"])
-            messages.success(request, "🚀 Torneio disparado com sucesso em segundo plano!")
+            messages.success(request, "🚀 Motor DEnTS iniciado!")
         except Exception as e:
-            messages.error(request, f"❌ Falha ao iniciar torneio: {str(e)}")
+            messages.error(request, f"❌ Erro ao disparar: {str(e)}")
         return redirect("../")
 
 # --- 3. CONFIGURAÇÕES ADICIONAIS ---
 
 class ListandoHistoricoPartida(admin.ModelAdmin):
-    list_display = ("id", "torneio", "fase", "mesa_id_original", "ver_log_clicavel")
-    list_filter = ("fase", "torneio")
+    list_display = ("id", "torneio", "fase", "mesa_id_original", "status_formatado", "ver_log_clicavel")
+    list_filter = ("status_execucao", "fase", "torneio")
+
+    def status_formatado(self, obj):
+        colors = {'sucesso': '#28a745', 'timeout': '#ffc107', 'erro_bot': '#dc3545'}
+        color = colors.get(obj.status_execucao, '#6c757d')
+        return format_html('<b style="color: {}; text-transform: uppercase;">{}</b>', color, obj.status_execucao)
+    status_formatado.short_description = "Status"
 
     def ver_log_clicavel(self, obj):
         if obj.log_arquivo:
             url = f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{obj.log_arquivo}"
-            return format_html('<a href="{}" target="_blank">🔗 Ver no S3</a>', url)
+            return format_html('<a href="{}" target="_blank">🔗 Log S3</a>', url)
         return "Sem log"
-    ver_log_clicavel.short_description = "Caminho AWS"
 
 class ListandoMesa(admin.ModelAdmin):
     list_display = ("id", "status")
-    list_display_links = ("id", "status")
-    search_fields = ("status", )
-    list_per_page = 10
 
 class ListandoCodigoMesa(admin.ModelAdmin):
     list_display = ("id", "codigo_id", "mesa_id")
-    list_display_links = ("id", "codigo_id", "mesa_id")
-    search_fields = ("mesa_id", )
-    list_per_page = 10
 
-# --- 4. REGISTOS ---
-
+# --- 4. REGISTROS ---
 admin.site.register(Torneio, ListandoTorneio)
 admin.site.register(HistoricoPartida, ListandoHistoricoPartida)
 admin.site.register(Mesa, ListandoMesa)

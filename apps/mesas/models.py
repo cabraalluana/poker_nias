@@ -3,7 +3,6 @@ from apps.codigos.models import Codigo
 
 class Mesa(models.Model):
     status = models.BooleanField(default=True)
-    # Adicionado campo para vincular a um torneio específico
     torneio = models.ForeignKey('Torneio', on_delete=models.CASCADE, null=True, blank=True)
 
 class Codigo_Mesa(models.Model):
@@ -11,16 +10,14 @@ class Codigo_Mesa(models.Model):
     mesa = models.ForeignKey(Mesa, default=None, on_delete=models.CASCADE)
 
 class Torneio(models.Model):
-    """Agrupa todas as fases de uma execução do read.py"""
     data_inicio = models.DateTimeField(auto_now_add=True)
-    tempo_total_ms = models.IntegerField(null=True, blank=True) # Telemetria Global
+    tempo_total_ms = models.IntegerField(null=True, blank=True)
     quantidade_jogadores = models.IntegerField(default=0)
 
     def __str__(self):
         return f"Torneio {self.id} - {self.data_inicio.strftime('%d/%m/%Y %H:%M')}"
 
 class ResultadoTorneio(models.Model):
-    """O Ranking Definitivo (O que aparece no final do funil)"""
     torneio = models.ForeignKey(Torneio, on_delete=models.CASCADE, related_name='rankings')
     codigo = models.ForeignKey(Codigo, on_delete=models.CASCADE)
     posicao = models.IntegerField()
@@ -30,12 +27,15 @@ class ResultadoTorneio(models.Model):
         ordering = ['posicao']
 
 class HistoricoPartida(models.Model):
-    """Dados de cada mesa individual (Telemetria de Fase e Replay)"""
     torneio = models.ForeignKey(Torneio, on_delete=models.CASCADE, related_name='partidas')
     mesa_id_original = models.IntegerField()
-    log_arquivo = models.CharField(max_length=255) # Caminho S3/Local do log_acoes.txt
-    tempo_processamento_ms = models.IntegerField() # Telemetria da Mesa
+    log_arquivo = models.CharField(max_length=255, null=True, blank=True)
+    tempo_processamento_ms = models.IntegerField(null=True, blank=True)
     fase = models.IntegerField(default=1)
+    
+    # --- NOVOS CAMPOS DE SEGURANÇA ---
+    status_execucao = models.CharField(max_length=50, default='sucesso') # 'sucesso', 'timeout', 'erro_bot'
+    detalhes_erro = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        return f"Mesa {self.mesa_id_original} - Fase {self.fase}"
+        return f"Mesa {self.mesa_id_original} - Fase {self.fase} ({self.status_execucao})"

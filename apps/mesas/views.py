@@ -143,9 +143,11 @@ def download_unico_e_extrair(arquivo_nome, pasta_destino):
     s3 = boto3.client('s3')
     bucket_name = 'fotografias-poker'
     s3_folder = 'static/arquivos/' 
+    print(arquivo_nome)
     
     file_name = os.path.basename(arquivo_nome) 
     s3_key = f"{s3_folder}{file_name}"
+    print(s3_key)
     local_path = os.path.join(pasta_destino, file_name)
 
     if not os.path.exists(pasta_destino):
