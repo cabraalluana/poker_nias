@@ -31,7 +31,6 @@ def sortear_mesas(num, ids):
     return mesas
 
 def criar_mesa_e_vincular_codigos(mesas_sorteadas, torneio_obj):
-    """Cria mesas vinculadas ao objeto Torneio atual."""
     from apps.mesas.models import Mesa, Codigo, Codigo_Mesa 
     for grupo in mesas_sorteadas:
         nova_mesa = Mesa.objects.create(status=True, torneio=torneio_obj)
@@ -43,7 +42,6 @@ def criar_mesa_e_vincular_codigos(mesas_sorteadas, torneio_obj):
 def criar_pastas_mesas_ativas(): return views.criar_pastas_mesas_ativas()
 
 def consultar_arquivo_e_id_mesas(torneio_id):
-    """Filtra bots apenas do torneio atual para evitar conflitos."""
     from apps.mesas.models import Codigo_Mesa
     vinculos = Codigo_Mesa.objects.filter(mesa__torneio_id=torneio_id, mesa__status=True)
     resultado = []
@@ -52,7 +50,6 @@ def consultar_arquivo_e_id_mesas(torneio_id):
     return resultado
 
 def download_unico_e_extrair(arquivo_nome, pasta_destino):
-    """Baixa do S3 corrigindo o caminho para static/arquivos/."""
     import boto3
     from django.conf import settings
     s3 = boto3.client('s3', 
@@ -64,14 +61,13 @@ def download_unico_e_extrair(arquivo_nome, pasta_destino):
     file_name = os.path.basename(arquivo_nome) 
     s3_key = f"{s3_folder}{file_name}"
     local_path = os.path.join(pasta_destino, file_name)
-
     if not os.path.exists(pasta_destino): os.makedirs(pasta_destino)
     try:
         s3.download_file(bucket_name, s3_key, local_path)
         if file_name.endswith('.zip'):
             with zipfile.ZipFile(local_path, 'r') as zip_ref:
                 zip_ref.extractall(pasta_destino)
-            os.remove(local_path)
+            if os.path.exists(local_path): os.remove(local_path)
             return os.path.join(pasta_destino, 'bot.py') 
         return local_path 
     except Exception as e:
@@ -81,18 +77,30 @@ def download_unico_e_extrair(arquivo_nome, pasta_destino):
 def finalizar_mesa(id_m, r): return views.alterar_status_mesa(id_m)
 
 def obter_ranking_mesa(caminho, ids):
+    """Lê o ranking baseado no formato de espaços do state.py."""
     if not os.path.exists(caminho):
         return [{'id_codigo': i, 'fichas': 0.0} for i in ids]
     try:
         with open(caminho, 'r') as f:
             linhas = f.readlines()
         if not linhas: raise ValueError
-        stacks = linhas[-1].strip().split(';')[-1].split(',')
+        
+        # Pega a última linha e divide por espaços (formato do state.py)
+        parts = linhas[-1].strip().split()
+        
+        # No seu state.py, as fichas começam após os 5 primeiros campos (T, M, A, B, P)
+        # Então pegamos os últimos N elementos, onde N é o número de jogadores
+        num_jogadores = len(ids)
+        stacks = parts[-num_jogadores:]
+        
         ranking = []
         for i, id_c in enumerate(ids):
-            ranking.append({'id_codigo': id_c, 'fichas': float(stacks[i]) if i < len(stacks) else 0.0})
+            fichas = float(stacks[i]) if i < len(stacks) else 0.0
+            ranking.append({'id_codigo': id_c, 'fichas': fichas})
+            
         return sorted(ranking, key=lambda x: x['fichas'], reverse=True)
-    except:
+    except Exception as e:
+        print(f"   ⚠️ Falha ao ler ranking: {e}")
         return [{'id_codigo': i, 'fichas': 0.0} for i in ids]
 
 def obter_sobreviventes_da_fase(mesas_ok, logs, ids_lista):
@@ -100,10 +108,13 @@ def obter_sobreviventes_da_fase(mesas_ok, logs, ids_lista):
     for i, id_m in enumerate(mesas_ok):
         path = os.path.join(logs[i], 'log_acoes.txt')
         ranking = obter_ranking_mesa(path, ids_lista[i])
+        # Promove metade da mesa (5 de 10)
         vagas = max(1, len(ranking) // 2)
         for j, p in enumerate(ranking):
             if j < vagas and p['fichas'] > 0: promovidos.append(p['id_codigo'])
             elif p['fichas'] > 0: eliminados_vivos.append(p)
+    
+    # Repescagem: Garante que tenhamos pelo menos 2 para a próxima fase
     if len(promovidos) < 2 and eliminados_vivos:
         eliminados_vivos.sort(key=lambda x: x['fichas'], reverse=True)
         while len(promovidos) < 2 and eliminados_vivos:
