@@ -1,126 +1,72 @@
-# NIAS-IA Poker Challenge
+# NIAS-IA: Plataforma de Competição e Aprendizado em IA
+Este projeto é um ecossistema de simulação de Poker desenvolvido como Trabalho de Conclusão de Curso (TCC) em Engenharia Elétrica na UFV. O objetivo é facilitar o ensino de Inteligência Computacional através de um ambiente competitivo onde alunos desenvolvem agentes (bots) para disputar torneios em um ambiente seguro e controlado.
 
-Este é um guia para configurar e executar o projeto **NIAS-IA Poker Challenge** em sua máquina local. Certifique-se de seguir cada passo cuidadosamente para garantir uma configuração adequada.
+## 🛠️ Tecnologias e Arquitetura
+Framework: Django (Python 3.11+)
 
-## 📋 Pré-requisitos
+Banco de Dados: PostgreSQL (via Docker)
 
-* **Python 3.11+** instalado em sua máquina. [Baixar Python](https://www.python.org/downloads/).
-* **Git** instalado.
-* **MATLAB** instalado (necessário para a execução da API de competição).
+Orquestração: Docker & Docker Compose
 
----
+Storage de Logs: Amazon S3 (Boto3)
 
-## 🚀 Instalação e Configuração
+Segurança: Sandbox com restrição de módulos (AST) e multiprocessamento.
 
-### 1. Clonar o Repositório
+Integração: Compatibilidade com algoritmos de tomada de decisão e MATLAB.
 
-Abra o terminal na pasta onde deseja salvar o projeto e execute o comando abaixo (substitua `<link_do_repositório>` pela URL do seu repositório):
+## 🚀 Configuração Rápida (Via Docker)
+A forma recomendada de executar o projeto é via Docker, garantindo que todas as dependências (inclusive o banco de dados) subam corretamente.
 
-```bash
-git clone <link_do_repositório>
-````
+1. Clonar o Repositório
+Bash
+git clone https://github.com/cabraalluana/poker_nias.git
+cd poker_nias
+2. Configurar Variáveis de Ambiente (.env)
+Crie um arquivo .env na raiz do projeto e preencha com suas credenciais. Este passo é obrigatório para que os logs no S3 funcionem.
+3. Subir o Ambiente
+Bash
+docker-compose up --build -d
+O site estará disponível em http://localhost:8000.
 
-### 2\. Configuração do Ambiente Virtual (.venv)
+## 🏆 Executando um Torneio
+Diferente de um site comum, o NIAS-IA possui um orquestrador que processa as partidas. Após os alunos fazerem o upload dos códigos via interface, você deve disparar o torneio:
 
-Abra o terminal na pasta do projeto e crie o ambiente virtual.
+Bash
+# Entrar no container web e rodar o orquestrador
+docker exec -it poker_nias-web-1 python read.py
+Este comando irá:
 
-**Windows:**
+Buscar os códigos no banco de dados.
 
-```bash
-python -m venv .venv
-.venv\Scripts\activate
-```
+Validar a segurança (Sandbox).
 
-> **Nota:** Se houver erro de permissão no Windows, execute o comando abaixo e tente ativar novamente:
-> `Set-ExecutionPolicy RemoteSigned -Scope Process`
+Simular as mesas de Poker.
 
-**Linux / macOS:**
+Exportar os rankings e logs detalhados para o Amazon S3.
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
+## 📂 Estrutura de Páginas
+O sistema foi desenhado para ser uma ferramenta didática completa:
 
-### 3\. Instalação de Dependências
+Home: Dashboard de boas-vindas.
 
-Com o ambiente virtual ativado, instale as bibliotecas necessárias:
+Sobre: Fundamentação teórica do projeto (Baseada no artigo COBENGE 2024).
 
-```bash
-pip install -r requirements.txt
-```
+Regras: Lógica do Poker simplificado para os desenvolvedores de bots.
 
------
+Funcionamento: Detalhes da infraestrutura (Docker + S3 + Sandbox).
 
-## ⚙️ Configuração Adicional (.env)
+Resultados: Ranking dinâmico extraído diretamente do banco de dados e logs da AWS.
 
-Para que o sistema funcione corretamente (especialmente o upload de arquivos para a AWS), é **obrigatório** configurar as variáveis de ambiente.
+## 🛡️ Segurança e Sandbox
+Para proteger o servidor de códigos maliciosos, o NIAS-IA utiliza uma camada de proteção que:
 
-1.  Crie um arquivo chamado **`.env`** na raiz do projeto (na mesma pasta do `manage.py`).
-2.  Adicione o seguinte conteúdo ao arquivo, substituindo os valores pelos fornecidos pelo administrador:
+Bloqueia import os, sys, subprocess e chamadas de rede.
 
-<!-- end list -->
+Permite apenas bibliotecas de cálculo como numpy, math e random.
 
-```ini
-# Configurações do Django
-SECRET_KEY=sua_chave_secreta_aqui
-DEBUG=True
+Executa cada bot em um processo isolado com tempo de resposta limitado (Timeout).
 
-# Configurações da AWS
-AWS_ACCESS_KEY_ID=seu_access_key_id
-AWS_SECRET_ACCESS_KEY=seu_secret_access_key
-AWS_STORAGE_BUCKET_NAME=nome_do_seu_bucket
-```
+## 🎓 Créditos e TCC
+Desenvolvido por Luana Cabral Orientador: Rodolpho Vilela Alves Neves
 
------
-
-## 🗄️ Configuração do Banco de Dados
-
-Crie as tabelas no banco de dados e um usuário administrador.
-
-```bash
-# 1. Criar as migrações
-python manage.py makemigrations
-
-# 2. Aplicar as migrações ao banco
-python manage.py migrate
-
-# 3. Criar superusuário (siga as instruções na tela)
-python manage.py createsuperuser
-```
-
------
-
-## ▶️ Execução do Sistema
-
-Para o sistema funcionar, você precisa rodar dois processos em terminais separados.
-
-### Terminal 1: Servidor Web (Django)
-
-```bash
-python manage.py runserver
-```
-
-Acesse o site em: **https://www.google.com/search?q=http://127.0.0.1:8000**
-
-### Terminal 2: API do MATLAB
-
-Mantenha este terminal aberto para processar as competições:
-
-```bash
-python matlab_api_server.py
-```
-
------
-
-## 🐳 Rodando com Docker
-
-Se preferir usar Docker e não quiser configurar o Python manualmente:
-
-1.  Crie o arquivo `.env` como explicado acima.
-2.  Execute:
-
-<!-- end list -->
-
-```bash
-docker-compose up --build
-```
+Universidade Federal de Viçosa (UFV) Departamento de Engenharia Elétrica
