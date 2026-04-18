@@ -1,0 +1,23 @@
+{% extends 'shared/base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-9">
+            <h2 class="text-center mb-5" style="color: #00d2d3;">🃏 Regras do Jogo</h2>
+            
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h4>Lógica de Competição</h4>
+                    <p>O ambiente utiliza uma variante do <strong>Texas Hold'em No-Limit</strong>. Cada bot atua como um agente autônomo que deve processar o estado da mesa e retornar uma ação.</p>
+                    
+                    <ul class="list-group list-group-flush mt-4">
+                        <li class="list-group-item"><strong>Fichas (Stacks):</strong> Cada bot inicia com uma quantidade fixa de fichas. A sobrevivência do stack determina a permanência no torneio.</li>
+                        <li class="list-group-item"><strong>Ações Disponíveis:</strong> O bot pode retornar <code>Fold</code> (desistir), <code>Call</code> (igualar aposta) ou <code>Raise</code> (aumentar aposta).</li>
+                        <li class="list-group-item"><strong>Mãos e Rodadas:</strong> O sistema simula rodadas sucessivas (Pre-flop, Flop, Turn e River) enviando os dados das cartas comunitárias ao agente.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

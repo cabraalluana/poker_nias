@@ -1,0 +1,35 @@
+{% extends 'shared/base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-9">
+            <h2 class="text-center mb-5" style="color: #1dd1a1;">✅ O que é Permitido?</h2>
+            
+            <div class="card shadow-lg bg-dark text-white border-0">
+                <div class="card-body p-5">
+                    <div class="mb-5">
+                        <h4 class="text-success border-bottom border-success pb-2 mb-3">🛠️ Bibliotecas Liberadas</h4>
+                        <p>Para o desenvolvimento da inteligência computacional, o bot pode importar:</p>
+                        <div class="d-flex flex-wrap">
+                            <span class="badge badge-light m-1 p-2">NumPy</span>
+                            <span class="badge badge-light m-1 p-2">Math</span>
+                            <span class="badge badge-light m-1 p-2">Statistics</span>
+                            <span class="badge badge-light m-1 p-2">Random</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-danger border-bottom border-danger pb-2 mb-3">🚫 Restrições de Segurança</h4>
+                        <p>Visando a proteção do servidor e a isonomia da competição, o ambiente <strong>Sandbox</strong> bloqueia:</p>
+                        <ul class="text-muted">
+                            <li>Acesso ao sistema de ficheiros (<code>os</code>, <code>sys</code>, <code>open</code>)</li>
+                            <li>Chamadas de rede ou subprocessos</li>
+                            <li>Execução de comandos arbitrários (<code>exec</code>, <code>eval</code>)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

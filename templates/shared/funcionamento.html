@@ -1,0 +1,31 @@
+{% extends 'shared/base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-9">
+            <h2 class="text-center mb-5" style="color: #54a0ff;">⚙️ Como Funciona o Sistema</h2>
+            
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 border-0 shadow-sm p-3">
+                        <h5>☁️ Armazenamento Cloud</h5>
+                        <p class="small text-muted">Todo o código submetido é versionado e armazenado de forma segura no <strong>Amazon S3</strong>, garantindo integridade e persistência dos dados para o torneio.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 border-0 shadow-sm p-3">
+                        <h5>🤖 Orquestração Python</h5>
+                        <p class="small text-muted">Um orquestrador central gerencia as partidas em paralelo, utilizando multiprocessamento para simular mesas simultâneas com alto desempenho.</p>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="card border-0 shadow-sm p-4 bg-light">
+                        <h5>Fluxo do Torneio</h5>
+                        <p>O torneio é dividido em fases eliminatórias. Após cada fase, o sistema realiza o <strong>Clean-up</strong> de arquivos temporários e gera um ranking dinâmico baseado no saldo final de fichas de cada mesa.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

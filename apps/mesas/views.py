@@ -4,7 +4,9 @@ import os
 import boto3
 import sys
 
-from django.shortcuts import get_object_or_404
+from .models import Torneio, HistoricoPartida
+from django.conf import settings
+from django.shortcuts import get_object_or_404, render
 from django.apps import apps
 from apps.codigos.models import Codigo
 from django.db import transaction
@@ -219,3 +221,22 @@ class DispararTorneioAPI(APIView):
             return Response({"mensagem": "🚀 Torneio iniciado em segundo plano!"}, status=status.HTTP_202_ACCEPTED)
         except Exception as e:
             return Response({"erro": f"Falha ao iniciar: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+def sobre(request):
+    """Exibe as informações didáticas do projeto."""
+    return render(request, 'sobre.html')
+
+def exibir_resultados(request):
+    """Busca o último torneio e seu histórico de partidas para exibir no site."""
+    ultimo_torneio = Torneio.objects.last()
+    partidas = []
+    
+    if ultimo_torneio:
+        partidas = HistoricoPartida.objects.filter(torneio=ultimo_torneio).order_by('fase', 'mesa_id_original')
+    
+    context = {
+        'torneio': ultimo_torneio,
+        'partidas': partidas,
+        'settings': settings
+    }
+    return render(request, 'resultados.html', context)
