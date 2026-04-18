@@ -1,0 +1,50 @@
+{% extends 'shared/base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center">🏆 Resultados do Torneio</h2>
+    
+    {% if torneio %}
+        <div class="alert alert-dark text-center shadow-sm">
+            <strong>Torneio #{{ torneio.id }}</strong> | Jogadores Iniciais: {{ torneio.quantidade_jogadores }} | Duração: {{ torneio.tempo_total_ms }}ms
+        </div>
+
+        <table class="table table-hover mt-4 shadow-sm bg-white">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Fase</th>
+                    <th>ID Mesa</th>
+                    <th>Status de Execução</th>
+                    <th>Log Detalhado (S3)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for partida in partidas %}
+                <tr>
+                    <td>Fase {{ partida.fase }}</td>
+                    <td>Mesa {{ partida.mesa_id_original }}</td>
+                    <td>
+                        <span class="badge 
+                            {% if partida.status_execucao == 'sucesso' %}badge-success
+                            {% elif partida.status_execucao == 'timeout' %}badge-warning
+                            {% else %}badge-danger{% endif %}">
+                            {{ partida.status_execucao }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if partida.log_arquivo %}
+                            <a href="https://{{ settings.AWS_S3_CUSTOM_DOMAIN }}/{{ partida.log_arquivo }}" target="_blank" class="btn btn-sm btn-link">Abrir Log</a>
+                        {% else %}
+                            <span class="text-muted">Indisponível</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-secondary text-center mt-5">
+            Nenhum resultado disponível. Execute um torneio para visualizar o ranking aqui.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

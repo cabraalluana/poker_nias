@@ -16,7 +16,7 @@
             </div>
             <ul class="navbar-links">
                 <li><a href="{% url 'index' %}" {% if request.path == '/' %}class="active"{% endif %}>Home</a></li>
-                <li><a href="#">Sobre</a></li>
+                <li><a href="{% url 'sobre' %}">Sobre</a></li>
                 <li><a href="{% url 'index_codigo' %}" {% if 'index-codigo' in request.path %}class="active"{% endif %}>Resultados</a></li>
                 
                 {% if user.is_authenticated %}
