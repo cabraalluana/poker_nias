@@ -1,66 +1,132 @@
 {% extends 'shared/base.html' %}
 {% block content %}
-<div class="container mt-5">
-    <div class="text-center mb-5">
-        <h2 class="display-4 font-weight-bold" style="color: #ff4b5c;">🏁 Torneios Finalizados</h2>
-        <p class="lead text-muted">Histórico completo de simulações e rankings por fase.</p>
-    </div>
-    
-    {% if torneio %}
-        <div class="row justify-content-center mb-4">
-            <div class="col-md-8">
-                <div class="card shadow-sm border-0" style="background-color: #1a1a2e; color: white;">
-                    <div class="card-body d-flex justify-content-around align-items-center py-3">
-                        <span><strong>🆔 ID:</strong> {{ torneio.id }}</span>
-                        <span><strong>👥 Jogadores:</strong> {{ torneio.quantidade_jogadores }}</span>
-                        <span><strong>⏱️ Duração:</strong> {{ torneio.tempo_total_ms }}ms</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+<style>
+    /* Container para forçar a centralização do cabeçalho */
+    .header-center-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        text-align: center;
+        margin-bottom: 50px;
+    }
 
-        <div class="row justify-content-center">
-            <div class="col-md-10">
-                <div class="table-responsive shadow rounded">
-                    <table class="table table-hover w-100 bg-white mb-0" style="border-collapse: separate; border-spacing: 0;">
-                        <thead class="thead-dark text-center">
-                            <tr>
-                                <th class="py-3" style="width: 25%;">Etapa do Torneio</th>
-                                <th class="py-3" style="width: 25%;">Identificador</th>
-                                <th class="py-3" style="width: 25%;">Status</th>
-                                <th class="py-3" style="width: 25%;">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-center">
-                            {% for partida in partidas %}
-                            <tr>
-                                <td class="align-middle font-weight-bold">Fase {{ partida.fase }}</td>
-                                <td class="align-middle text-muted">Mesa #{{ partida.mesa_id_original }}</td>
-                                <td class="align-middle">
-                                    {% if partida.status_execucao == 'sucesso' %}
-                                        <span class="badge badge-success px-3 py-2">● Concluído</span>
-                                    {% else %}
-                                        <span class="badge badge-danger px-3 py-2">● Erro</span>
-                                    {% endif %}
-                                </td>
-                                <td class="align-middle">
-                                    <a href="{% url 'detalhes_partida' partida.id %}" class="btn btn-primary btn-sm px-4 shadow-sm" style="border-radius: 20px;">
-                                        📊 Ver Ranking
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+    /* Estilos da Tabela Centralizada (Mantendo o padrão que você gostou) */
+    .ranking-container { 
+        display: flex; 
+        justify-content: center; 
+        width: 100%; 
+        padding: 0 20px; 
+    }
+    
+    .ranking-box { 
+        width: 100%; 
+        max-width: 1000px; 
+        background-color: #1a1a2e; 
+        border-radius: 15px; 
+        box-shadow: 0 15px 35px rgba(0,0,0,0.4); 
+        overflow: hidden; 
+        border: 1px solid #2d2d44; 
+    }
+    
+    .custom-table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        color: white; 
+        text-align: center; 
+    }
+    
+    .custom-table thead { 
+        background-color: #161625; 
+        border-bottom: 2px solid #2d2d44; 
+        color: #a0a0c0; 
+        text-transform: uppercase; 
+        font-size: 0.85rem; 
+        letter-spacing: 2px; 
+    }
+    
+    .custom-table th, .custom-table td { padding: 25px; }
+    .custom-table tr { border-bottom: 1px solid #2d2d44; }
+    
+    .btn-delicate {
+        border: 2px solid #ff4b5c;
+        color: #ff4b5c;
+        padding: 8px 20px;
+        border-radius: 25px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+    
+    .btn-delicate:hover {
+        background-color: #ff4b5c;
+        color: white;
+    }
+</style>
+
+<div class="container-fluid mt-5">
+    
+    <div class="header-center-container">
+        <h2 class="display-4 font-weight-bold text-white" style="letter-spacing: 2px; margin-bottom: 10px;">
+            🏁 Torneios Finalizados
+        </h2>
+        <p class="text-muted" style="font-size: 1.1rem;">
+            Resultados das simulações de Inteligência Computacional do NIAS-IA.
+        </p>
+    </div>
+
+    <div class="ranking-container">
+        <div class="ranking-box">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">Etapa</th>
+                        <th style="width: 30%;">Identificador</th>
+                        <th style="width: 30%;">Status</th>
+                        <th style="width: 20%;">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for partida in partidas %}
+                    <tr>
+                        <td class="font-weight-bold">Fase {{ partida.fase }}</td>
+                        <td class="text-info font-weight-bold">MESA #{{ partida.mesa_id_original }}</td>
+                        <td>
+                            {% if partida.status_execucao == 'sucesso' %}
+                                <span style="color: #2ecc71; font-weight: bold; font-size: 0.8rem; letter-spacing: 1px;">
+                                    CONCLUÍDO
+                                </span>
+                            {% else %}
+                                <span style="color: #ff4b5c; font-weight: bold; font-size: 0.8rem; letter-spacing: 1px;">
+                                    ERRO
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'detalhes_partida' partida.id %}" class="btn-delicate">
+                                Ver Ranking
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="py-5 text-muted">
+                            🛋️ Nenhuma simulação encontrada no sistema.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-    {% else %}
-        <div class="text-center mt-5">
-            <div class="alert alert-light shadow-sm d-inline-block px-5">
-                🛋️ Nenhuma simulação encontrada. Que tal rodar o <code>read.py</code>?
-            </div>
-        </div>
-    {% endif %}
+    </div>
+
+    <div style="display: flex; justify-content: center; width: 100%; margin-top: 50px; margin-bottom: 50px;">
+        <p class="small text-muted" style="letter-spacing: 2px; text-transform: uppercase; text-align: center;">
+            PLATAFORMA NIAS-IA • ENGENHARIA ELÉTRICA UFV
+        </p>
+    </div>
 </div>
 {% endblock %}
