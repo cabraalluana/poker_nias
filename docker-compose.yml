@@ -6,5 +6,9 @@ services:
     volumes:
       - .:/app
       - ../DEnTS:/app/DEnTS 
+      - local_media_storage:/app/media
     env_file:
       - ./.env
+
+volumes:
+  local_media_storage:

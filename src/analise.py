@@ -4,6 +4,7 @@ import os
 import shutil
 import zipfile
 from apps.mesas import views
+from django.conf import settings
 
 def numeroJogadores(): return views.numeroJogadores()
 def get_codigo_ids(): return views.get_codigo_ids()
@@ -49,29 +50,33 @@ def consultar_arquivo_e_id_mesas(torneio_id):
         resultado.append((v.codigo.id, str(v.codigo.arquivo), v.mesa_id))
     return resultado
 
-def download_unico_e_extrair(arquivo_nome, pasta_destino):
-    import boto3
-    from django.conf import settings
-    s3 = boto3.client('s3', 
-        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY
-    )
-    bucket_name = 'fotografias-poker'
-    s3_folder = 'static/arquivos/' 
-    file_name = os.path.basename(arquivo_nome) 
-    s3_key = f"{s3_folder}{file_name}"
-    local_path = os.path.join(pasta_destino, file_name)
-    if not os.path.exists(pasta_destino): os.makedirs(pasta_destino)
+def download_unico_e_extrair(caminho_banco, pasta_destino):
+    """
+    Substitui a antiga extração do S3 (arquivos ZIP).
+    Agora apenas copia o arquivo .py do volume local para a pasta temporária da mesa.
+    """
     try:
-        s3.download_file(bucket_name, s3_key, local_path)
-        if file_name.endswith('.zip'):
-            with zipfile.ZipFile(local_path, 'r') as zip_ref:
-                zip_ref.extractall(pasta_destino)
-            if os.path.exists(local_path): os.remove(local_path)
-            return os.path.join(pasta_destino, 'bot.py') 
-        return local_path 
+        # Monta o caminho completo de onde o arquivo está guardado no Docker
+        caminho_origem = os.path.join(settings.MEDIA_ROOT, caminho_banco)
+        
+        # Fallback de segurança caso o MEDIA_ROOT não esteja mapeando o BASE_DIR
+        if not os.path.exists(caminho_origem):
+            caminho_origem = os.path.join(settings.BASE_DIR, 'media', caminho_banco)
+
+        if not os.path.exists(caminho_origem):
+            print(f"⚠️ Arquivo não encontrado no disco local: {caminho_origem}")
+            return None
+
+        nome_arquivo = os.path.basename(caminho_origem)
+        caminho_final = os.path.join(pasta_destino, nome_arquivo)
+
+        # Copia o bot (.py) para a pasta da mesa
+        shutil.copy2(caminho_origem, caminho_final)
+        
+        return caminho_final
+
     except Exception as e:
-        print(f"   ❌ Erro S3 no arquivo {file_name}: {e}")
+        print(f"❌ Erro ao preparar arquivo do bot: {e}")
         return None
 
 def finalizar_mesa(id_m, r): return views.alterar_status_mesa(id_m)

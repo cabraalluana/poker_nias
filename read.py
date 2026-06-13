@@ -20,17 +20,26 @@ from dents.engine import simular_partida
 from dents.infrastructure import criar_pasta_logs
 from apps.mesas.models import Torneio, ResultadoTorneio, HistoricoPartida
 
-def enviar_para_s3(caminho_local_arquivo, pasta_destino_s3):
-    s3 = boto3.client('s3', 
-        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY
-    )
+def salvar_log_localmente(caminho_local_arquivo, pasta_destino_local="media/logs"):
+    """
+    Substitui o antigo envio para o AWS S3.
+    Garante a persistência do arquivo de log na pasta de mídia local do servidor.
+    """
     nome_arquivo = os.path.basename(caminho_local_arquivo)
-    caminho_s3 = f"{pasta_destino_s3}/{nome_arquivo}"
+    diretorio_destino = os.path.join(settings.BASE_DIR, pasta_destino_local)
+    
+    # Garante que a pasta de destino exista
+    if not os.path.exists(diretorio_destino):
+        os.makedirs(diretorio_destino, exist_ok=True)
+        
+    caminho_final = os.path.join(diretorio_destino, nome_arquivo)
+    
     try:
-        s3.upload_file(caminho_local_arquivo, settings.AWS_STORAGE_BUCKET_NAME, caminho_s3)
-        return caminho_s3 
-    except: return caminho_local_arquivo
+        shutil.copy2(caminho_local_arquivo, caminho_final)
+        return f"{pasta_destino_local}/{nome_arquivo}"
+    except Exception as e:
+        print(f"⚠️ Falha ao mover log localmente: {e}")
+        return caminho_local_arquivo
 
 class Logger(object):
     def __init__(self, filename="log_execucao.txt"):
@@ -92,7 +101,7 @@ def main():
                 else:
                     log_file = os.path.join(pasta_log_local, 'log_acoes.txt')
                     if os.path.exists(log_file):
-                        s3_p = enviar_para_s3(log_file, f"torneio_{torneio_db.id}/fase_{fase_atual}")
+                        s3_p = salvar_log_localmente(log_file, f"media/logs/torneio_{torneio_db.id}/fase_{fase_atual}")
                         HistoricoPartida.objects.create(torneio=torneio_db, mesa_id_original=id_mesa_int, log_arquivo=s3_p, status_execucao='sucesso', fase=fase_atual)
                         logs_fase.append(pasta_log_local); ids_fase.append(ids_validos); mesas_com_sucesso.append(id_mesa_int)
                         analise.finalizar_mesa(id_mesa_int, None)
@@ -100,6 +109,17 @@ def main():
             if not mesas_com_sucesso: break
             jogadores_para_proxima_fase = analise.obter_sobreviventes_da_fase(mesas_com_sucesso, logs_fase, ids_fase)
             if len(jogadores_para_proxima_fase) < 2: break 
+
+            # --- NOVO: CORTE DE SEGURANÇA (BOTÃO DE PÂNICO) ---
+            if fase_atual >= 10:
+                print("\n🚨 LIMITE DE FASES ATINGIDO! Os bots empataram infinitamente.")
+                # Força o encerramento da competição
+                ranking_f = analise.obter_ranking_mesa(os.path.join(logs_fase[0], 'log_acoes.txt'), ids_fase[0])
+                for pos, p in enumerate(ranking_f, 1):
+                    ResultadoTorneio.objects.create(torneio=torneio_db, codigo_id=p['id_codigo'], posicao=pos, fichas_finais=p['fichas'])
+                break
+            # --------------------------------------------------
+            
             if len(mesas_ativas) > 1: fase_atual += 1
             else:
                 ranking_f = analise.obter_ranking_mesa(os.path.join(logs_fase[0], 'log_acoes.txt'), ids_fase[0])
@@ -109,10 +129,10 @@ def main():
     finally:
         torneio_db.tempo_total_ms = int((time.time() - inicio_torneio) * 1000); torneio_db.save()
         sys.stdout.log.close(); sys.stdout = sys.__stdout__
-        enviar_para_s3(nome_arquivo_log, "relatorios_execucao")
+        salvar_log_localmente(nome_arquivo_log, "media/relatorios_execucao")
         if os.path.exists(nome_arquivo_log): os.remove(nome_arquivo_log)
         for p in ['./mesas_ativas', './logs']: shutil.rmtree(p, ignore_errors=True)
         print("\n🏁 PROCESSO FINALIZADO.")
 
 if __name__ == "__main__":
-    multiprocessing.freeze_support(); main()
+    multiprocessing.freeze_support(); main()    
