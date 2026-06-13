@@ -168,7 +168,7 @@ def testar_bot(request, user_id):
         bot_aluno_arena = os.path.join(pasta_arena, f'aluno_{user_id}.py')
         shutil.copy2(caminho_bot_aluno, bot_aluno_arena)
 
-        # 3. Trazer os "Bots da Casa" para a Arena
+        # 3. Trazer os "Bots da Casa" para a Arena (Os corretos!)
         pasta_baseline = os.path.join(settings.BASE_DIR, 'baseline_bots')
         bots_casa = ['bot_passivo.py', 'bot_agressivo.py', 'bot_caotico.py']
         caminhos_jogadores = [bot_aluno_arena]
@@ -197,7 +197,7 @@ def testar_bot(request, user_id):
         proc.start()
         proc.join(timeout=5) # 5 segundos de tolerância máxima!
 
-        # 6. O Veredicto da Simulação
+        # 6. O Veredicto da Simulação com Leitura de Saldo
         if proc.is_alive():
             proc.terminate()
             proc.join()
@@ -205,7 +205,23 @@ def testar_bot(request, user_id):
         elif proc.exitcode != 0:
             messages.error(request, '❌ O teu bot teve um erro de código (Sintaxe, divisão por zero ou variável inexistente) e quebrou.')
         else:
-            messages.success(request, '✅ Parabéns! O teu bot sobreviveu à Arena de Treino contra os 3 Bots da Casa sem apresentar erros na execução.')
+            log_file = os.path.join(pasta_logs, 'log_acoes.txt')
+            saldo_final = 0.0
+            
+            if os.path.exists(log_file):
+                with open(log_file, 'r', encoding='utf-8') as f:
+                    linhas = f.readlines()
+                    if linhas:
+                        ultima_linha = linhas[-1].strip() # Pega a última linha e remove quebras
+                        colunas = ultima_linha.split() # Separa pelos espaços em branco
+                        
+                        try:
+                            # A 6ª coluna (índice 5) é o Stack do Jogador 1 (Aluno)
+                            saldo_final = float(colunas[5])
+                        except (IndexError, ValueError):
+                            pass # Mantém o 0.0 caso o arquivo esteja malformado
+            
+            messages.success(request, f'✅ SUCESSO! O teu bot sobreviveu à Arena! Saldo final: {saldo_final:.2f} fichas.')
 
         # Limpar a arena após o combate para poupar disco
         shutil.rmtree(pasta_arena, ignore_errors=True)
