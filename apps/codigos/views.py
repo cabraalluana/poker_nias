@@ -5,11 +5,15 @@ from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import HttpResponse
+from dents.engine import simular_partida
 from .forms import CodigoForms
 from .models import Codigo
 from codes.utils_dents import get_ultimo_log_dir
+from apps.mesas.models import Codigo_Mesa
 import mimetypes
 import os
+import shutil
+import multiprocessing
 
 def index_codigo(request):
     """
@@ -113,7 +117,6 @@ def detalhes_partida(request, partida_id):
                 fichas_finais = [float(f) for f in ultima_linha[5:]]
 
                 # Buscamos os vínculos da mesa para identificar os donos
-                from apps.mesas.models import Codigo_Mesa
                 vinculos = Codigo_Mesa.objects.filter(mesa_id=partida.mesa_id_original)
                 
                 for i, v in enumerate(vinculos):
@@ -140,3 +143,75 @@ def como_funciona(request):
 
 def o_que_e_permitido(request):
     return render(request, 'shared/permitido.html')
+
+def testar_bot(request, user_id):
+    """
+    Modo Teste (Arena de Treino):
+    Pega no bot ativo do utilizador, junta-o com os baseline_bots e executa uma partida de 5 segundos.
+    """
+    if not request.user.is_authenticated or request.user.id != user_id:
+        messages.error(request, 'Ação não permitida.')
+        return redirect('index')
+
+    codigo_aluno = Codigo.objects.filter(usuario_id=user_id).first()
+    if not codigo_aluno:
+        messages.error(request, 'Tens de enviar um bot primeiro para poder testá-lo!')
+        return redirect('enviar_codigo', user_id=user_id)
+
+    try:
+        # 1. Preparar o ambiente da Arena
+        pasta_arena = os.path.join(settings.BASE_DIR, 'media', 'arena_treino', f'user_{user_id}')
+        os.makedirs(pasta_arena, exist_ok=True)
+
+        # 2. Copiar o bot do aluno para a Arena
+        caminho_bot_aluno = os.path.join(settings.BASE_DIR, 'media', codigo_aluno.arquivo.name)
+        bot_aluno_arena = os.path.join(pasta_arena, f'aluno_{user_id}.py')
+        shutil.copy2(caminho_bot_aluno, bot_aluno_arena)
+
+        # 3. Trazer os "Bots da Casa" para a Arena
+        pasta_baseline = os.path.join(settings.BASE_DIR, 'baseline_bots')
+        bots_casa = ['bot_passivo.py', 'bot_agressivo.py', 'bot_caotico.py']
+        caminhos_jogadores = [bot_aluno_arena]
+
+        for bot in bots_casa:
+            origem = os.path.join(pasta_baseline, bot)
+            if os.path.exists(origem):
+                destino = os.path.join(pasta_arena, bot)
+                shutil.copy2(origem, destino)
+                caminhos_jogadores.append(destino)
+
+        # 4. Configurar a máquina de simulação
+        pasta_logs = os.path.join(pasta_arena, 'logs')
+        os.makedirs(pasta_logs, exist_ok=True)
+
+        config = {
+            "id_mesa": 999, # ID fictício exclusivo para a Arena
+            "jogadores": caminhos_jogadores,
+            "numTorneios": 10,
+            "pasta_logs": pasta_logs,
+            "modo_teste": True
+        }
+
+        # 5. Largar a Sandbox de testes (O Combate)
+        proc = multiprocessing.Process(target=simular_partida, args=(config,))
+        proc.start()
+        proc.join(timeout=5) # 5 segundos de tolerância máxima!
+
+        # 6. O Veredicto da Simulação
+        if proc.is_alive():
+            proc.terminate()
+            proc.join()
+            messages.error(request, '🚨 O teu bot demorou demasiado tempo a responder (Loop Infinito ou lentidão matemática). Foi desqualificado!')
+        elif proc.exitcode != 0:
+            messages.error(request, '❌ O teu bot teve um erro de código (Sintaxe, divisão por zero ou variável inexistente) e quebrou.')
+        else:
+            messages.success(request, '✅ Parabéns! O teu bot sobreviveu à Arena de Treino contra os 3 Bots da Casa sem apresentar erros na execução.')
+
+        # Limpar a arena após o combate para poupar disco
+        shutil.rmtree(pasta_arena, ignore_errors=True)
+
+    except Exception as e:
+        messages.error(request, f'Ocorreu um erro interno na Arena de Treino: {str(e)}')
+
+    # Regressa ao ecrã do aluno com a resposta
+    return redirect('enviar_codigo', user_id=user_id)

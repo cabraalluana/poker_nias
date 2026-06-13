@@ -91,7 +91,11 @@ def main():
                 pasta_log_local = criar_pasta_logs()
                 config = {"id_mesa": id_mesa_int, "jogadores": caminhos_locais, "numTorneios": 10, "pasta_logs": pasta_log_local}
                 proc = multiprocessing.Process(target=simular_partida, args=(config,))
-                proc.start(); proc.join(timeout=30) 
+                proc.start()
+                
+                # Busca o tempo limite definido no settings. Se não achar, usa 120 segundos.
+                tempo_limite = getattr(settings, 'TIMEOUT_OFICIAL', 120)
+                proc.join(timeout=tempo_limite)
 
                 if proc.is_alive():
                     proc.terminate(); proc.join()

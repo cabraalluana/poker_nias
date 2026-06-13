@@ -66,7 +66,15 @@
                 <div class="active-code-info">
                     <img src="{% static 'assets/imagens/Python-Emblem.png' %}" alt="Código Python">
                     <p>{{ codigo.arquivo }}</p>
+                    
                     <a href="{% url 'lista_codigos' codigo.id %}" class="btn btn-secondary" style="width: 100%; margin-top: 1rem;">Ver Detalhes</a>
+                    
+                    <a href="{% url 'testar_bot' user.id %}" 
+                       class="btn" 
+                       style="width: 100%; margin-top: 0.5rem; background-color: #f59e0b; color: white; border: none; text-align: center; font-weight: bold; cursor: pointer; padding: 0.5rem 1rem; border-radius: 4px; text-decoration: none; display: inline-block;"
+                       onclick="this.innerHTML='⚔️ Lutando na Arena... ⏳'; this.style.opacity='0.7'; this.style.pointerEvents='none';">
+                       ⚔️ Testar na Arena de Treino
+                    </a>
                 </div>
             {% endfor %}
         {% else %}

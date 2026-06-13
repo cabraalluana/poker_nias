@@ -1,5 +1,16 @@
 from django.urls import path
-from apps.codigos.views import enviar_codigo, lista_codigos, index_codigo, download_codigo, index_codigo, detalhes_partida, sobre, o_que_e_permitido, como_funciona, regras_jogo
+from apps.codigos.views import (
+    enviar_codigo, 
+    lista_codigos, 
+    index_codigo, 
+    download_codigo, 
+    detalhes_partida, 
+    sobre, 
+    o_que_e_permitido, 
+    como_funciona, 
+    regras_jogo, 
+    testar_bot
+)
 
 urlpatterns = [
     path('enviar-codigo/<int:user_id>', enviar_codigo, name='enviar_codigo'),
@@ -11,4 +22,5 @@ urlpatterns = [
     path('regras/', regras_jogo, name='regras'),
     path('como-funciona/', como_funciona, name='como_funciona'),
     path('permitido/', o_que_e_permitido, name='permitido'),
+    path('testar/<int:user_id>/', testar_bot, name='testar_bot'),
 ]

@@ -147,3 +147,11 @@ MESSAGE_TAGS = {
     messages.ERROR: 'danger',
     messages.SUCCESS: 'success'
 }
+
+# ==============================================================================
+# CONFIGURAÇÕES DO MOTOR DEnTS (PODE SER ALTERADO PELO PROFESSOR)
+# ==============================================================================
+
+# Tempo máximo (em segundos) que a plataforma aguarda a jogada de um bot no Torneio Oficial.
+# Bots que utilizam IA complexa ou Árvores de Decisão podem precisar de mais tempo.
+TIMEOUT_OFICIAL = 120   
