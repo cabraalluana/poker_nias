@@ -195,7 +195,7 @@ def testar_bot(request, user_id):
         # 5. Largar a Sandbox de testes (O Combate)
         proc = multiprocessing.Process(target=simular_partida, args=(config,))
         proc.start()
-        proc.join(timeout=5) # 5 segundos de tolerância máxima!
+        proc.join(timeout=120) # 120 segundos de tolerância máxima!
 
         # 6. O Veredicto da Simulação com Leitura de Saldo
         if proc.is_alive():

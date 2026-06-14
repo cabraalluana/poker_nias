@@ -3,7 +3,6 @@ import django
 import shutil
 import time
 import sys
-import boto3
 import multiprocessing
 from django.conf import settings
 

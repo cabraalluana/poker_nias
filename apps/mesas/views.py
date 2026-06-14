@@ -1,7 +1,4 @@
 import subprocess
-import zipfile
-import os
-import boto3
 import sys
 
 from .models import Torneio, HistoricoPartida
@@ -13,16 +10,11 @@ from django.db import transaction
 from apps.mesas.models import Mesa, Codigo_Mesa
 from django.contrib.auth.models import User
 from django.db.models import F
-from botocore.exceptions import ClientError
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from apps.mesas.models import Torneio
 from .serializers import TorneioSerializer
-
-for model in apps.get_models():
-    total_registros = model.objects.count()
-    print(f"{model._meta.verbose_name_plural}: {total_registros}")
     
 def numeroJogadores():
     """

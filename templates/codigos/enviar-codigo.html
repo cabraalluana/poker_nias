@@ -2,38 +2,42 @@
 {% load static %}
 {% block content %}
 
-<div class="instrucoes-bot-card" style="background-color: #ffffff; padding: 35px; border-radius: 12px; margin-bottom: 35px; border: 1px solid #e2e8f0; border-left: 6px solid #2563eb; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);">
+<div style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <div>
+        <h4 style="margin: 0; color: #1e293b;">Precisa de ajuda com o formato?</h4>
+        <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.95rem;">
+            Baixe o nosso <strong>Template Oficial</strong> ou consulte as regras da engine.
+        </p>
+    </div>
     
-    <h4 style="color: #1e293b; margin-top: 0; margin-bottom: 15px; font-weight: 700; display: flex; align-items: center; gap: 10px; font-size: 1.3rem;">
-        <span style="font-size: 1.5rem;">⚠️</span>
-        Estrutura Obrigatória do Bot (Python)
-    </h4>
-    
-    <p style="color: #475569; margin-bottom: 25px; line-height: 1.6; font-size: 1rem;">
-        O seu ficheiro <strong>.py</strong> deve obrigatoriamente conter uma função chamada <code style="background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px;">decidir_jogada</code>, recebendo os quatro parâmetros matemáticos do DEnTS. A engine espera receber um valor numérico (float ou int) como retorno. Veja o template oficial abaixo:
-    </p>
-    
-    <pre style="background-color: #1e293b; color: #f1f5f9; padding: 25px; border-radius: 8px; overflow-x: auto; margin-bottom: 0; font-family: 'Consolas', 'Monaco', 'Courier New', monospace; font-size: 0.95rem; line-height: 1.7; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);"><code>
-<span style="color: #f87171;">def</span> <span style="color: #fb923c;">decidir_jogada</span>(<span style="color: #38bdf8;">meu_stack</span>, <span style="color: #38bdf8;">pote_atual</span>, <span style="color: #38bdf8;">minhas_cartas</span>, <span style="color: #38bdf8;">cartas_mesa</span>):
-    <span style="color: #a78bfa;">"""
-    [Simulação Estocástica - Motor Treys]
-    ------------------------------------
-    meu_stack:      float com o seu saldo de fichas
-    pote_atual:     float com as fichas no centro da mesa
-    minhas_cartas:  lista com as suas 2 cartas privadas
-    cartas_mesa:    lista com as 5 cartas comunitárias
-    """</span>
-    
-    <span style="color: #94a3b8;"># Exemplo de lógica de teste:</span>
-    <span style="color: #94a3b8;"># Apostar 10% do pote para sobrevivência</span>
-    aposta_calculada = pote_atual * <span style="color: #f472b6;">0.1</span>
-    
-    <span style="color: #fbbf24;">return aposta_calculada</span>
-    </code></pre>
+    <div style="display: flex; gap: 12px;">
+        <a href="{% static 'downloads/bot_template_dents.py' %}" class="btn btn-outline-primary" download>
+            <i class="fas fa-download"></i> Baixar Template (.py)
+        </a>
+        
+        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#modalInstrucoes">
+            Ver Regras Técnicas
+        </button>
+    </div>
+</div>
+
+<div class="modal fade" id="modalInstrucoes" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Regras Técnicas da Arena</h5>
+            </div>
+            <div class="modal-body">
+                <p>O seu bot deve conter obrigatoriamente a função <code>decidir_jogada(stack, pote, minhas_cartas, cartas_mesa)</code>.</p>
+                <pre style="background: #1e293b; color: #fff; padding: 15px; border-radius: 5px; overflow-x: auto;">def decidir_jogada(meu_stack, pote_atual, minhas_cartas, cartas_mesa):
+    # Sua lógica aqui
+    return aposta_calculada</pre>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="upload-grid">
-    
     <section class="upload-form-card">
         <h2>Enviar Novo Código</h2>
         <form action="{% url 'enviar_codigo' user.id %}" method="POST" enctype="multipart/form-data">
@@ -41,7 +45,6 @@
             
             <div class="form-group">
                 <label for="{{ form.arquivo.id_for_label }}">Arquivo do Bot (.py)</label>
-                
                 <label for="{{ form.arquivo.id_for_label }}" class="file-upload-label">
                     <span>Escolher arquivo</span>
                 </label>
@@ -84,7 +87,6 @@
             </div>
         {% endif %}
     </section>
-
 </div>
 
 {% endblock %}
