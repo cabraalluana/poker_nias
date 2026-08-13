@@ -39,11 +39,11 @@ class PartidaInline(admin.TabularInline):
 
     def ver_log_s3(self, obj):
         if obj.log_arquivo:
-            # Garante que o link funcione independente da pasta no S3
-            url = f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{obj.log_arquivo}"
+            # Aponta para a pasta media local em vez da AWS
+            url = f"/{obj.log_arquivo}" 
             return format_html('<a href="{}" target="_blank" style="font-weight: bold; color: #007bff;">📄 Abrir Log</a>', url)
         return format_html('<span style="color: #999;">N/A</span>')
-    ver_log_s3.short_description = "Link AWS"
+    ver_log_s3.short_description = "Link Arquivo" # Mudei o título para não ficar "Link AWS"
 
 # --- 2. CONFIGURAÇÃO DO TORNEIO ADMIN ---
 
@@ -92,8 +92,8 @@ class ListandoHistoricoPartida(admin.ModelAdmin):
 
     def ver_log_clicavel(self, obj):
         if obj.log_arquivo:
-            url = f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{obj.log_arquivo}"
-            return format_html('<a href="{}" target="_blank">🔗 Log S3</a>', url)
+            url = f"/{obj.log_arquivo}"
+            return format_html('<a href="{}" target="_blank">🔗 Log Local</a>', url)
         return "Sem log"
 
 class ListandoMesa(admin.ModelAdmin):

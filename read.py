@@ -19,12 +19,17 @@ from dents.engine import simular_partida
 from dents.infrastructure import criar_pasta_logs
 from apps.mesas.models import Torneio, ResultadoTorneio, HistoricoPartida
 
-def salvar_log_localmente(caminho_local_arquivo, pasta_destino_local="media/logs"):
+def salvar_log_localmente(caminho_local_arquivo, id_mesa_int, pasta_destino_local="media/logs"):
     """
     Substitui o antigo envio para o AWS S3.
     Garante a persistência do arquivo de log na pasta de mídia local do servidor.
     """
     nome_arquivo = os.path.basename(caminho_local_arquivo)
+    # Separa o nome ("meu_log") da extensão (".txt")
+    nome_base, extensao = os.path.splitext(nome_arquivo)
+
+    # Monta o novo nome corretamente
+    nome_arquivo = f"{nome_base}_mesa_{id_mesa_int}{extensao}"
     diretorio_destino = os.path.join(settings.BASE_DIR, pasta_destino_local)
     
     # Garante que a pasta de destino exista
@@ -104,7 +109,7 @@ def main():
                 else:
                     log_file = os.path.join(pasta_log_local, 'log_acoes.txt')
                     if os.path.exists(log_file):
-                        s3_p = salvar_log_localmente(log_file, f"media/logs/torneio_{torneio_db.id}/fase_{fase_atual}")
+                        s3_p = salvar_log_localmente(log_file, id_mesa_int, f"media/logs/torneio_{torneio_db.id}/fase_{fase_atual}")
                         HistoricoPartida.objects.create(torneio=torneio_db, mesa_id_original=id_mesa_int, log_arquivo=s3_p, status_execucao='sucesso', fase=fase_atual)
                         logs_fase.append(pasta_log_local); ids_fase.append(ids_validos); mesas_com_sucesso.append(id_mesa_int)
                         analise.finalizar_mesa(id_mesa_int, None)
@@ -132,10 +137,13 @@ def main():
     finally:
         torneio_db.tempo_total_ms = int((time.time() - inicio_torneio) * 1000); torneio_db.save()
         sys.stdout.log.close(); sys.stdout = sys.__stdout__
-        salvar_log_localmente(nome_arquivo_log, "media/relatorios_execucao")
+        s3_p = salvar_log_localmente(log_file, id_mesa_int, f"media/logs/torneio_{torneio_db.id}/fase_{fase_atual}")
+        logs_fase.append(pasta_log_local); ids_fase.append(ids_validos); mesas_com_sucesso.append(id_mesa_int)
+        analise.finalizar_mesa(id_mesa_int, None)
         if os.path.exists(nome_arquivo_log): os.remove(nome_arquivo_log)
         for p in ['./mesas_ativas', './logs']: shutil.rmtree(p, ignore_errors=True)
-        print("\n🏁 PROCESSO FINALIZADO.")
+        tempo_segundos = torneio_db.tempo_total_ms / 1000
+        print(f"\n🏁 PROCESSO FINALIZADO EM {tempo_segundos:.2f} SEGUNDOS.")
 
 if __name__ == "__main__":
     multiprocessing.freeze_support(); main()    

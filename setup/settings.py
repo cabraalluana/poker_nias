@@ -46,6 +46,9 @@ INSTALLED_APPS = [
     'apps.usuarios.apps.UsuariosConfig',
     'apps.codigos.apps.CodigosConfig',
     'apps.mesas.apps.MesasConfig',
+
+    # Bibliotecas de terceiros
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
@@ -154,4 +157,4 @@ MESSAGE_TAGS = {
 
 # Tempo máximo (em segundos) que a plataforma aguarda a jogada de um bot no Torneio Oficial.
 # Bots que utilizam IA complexa ou Árvores de Decisão podem precisar de mais tempo.
-TIMEOUT_OFICIAL = 120   
+TIMEOUT_OFICIAL = 480   
